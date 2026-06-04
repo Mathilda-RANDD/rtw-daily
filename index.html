@@ -518,7 +518,7 @@ async function loadProducts() {
   showLoadingSkeletons();
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('products')
       .select('*')
       .order('scraped_at', { ascending: false })
@@ -606,7 +606,7 @@ async function openComments(itemId, e) {
 async function renderModalComments(itemId) {
   const container = document.getElementById('modalComments');
   container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">로딩 중...</div>';
-  const { data: comments } = await supabase
+  const { data: comments } = await sbClient
     .from('product_comments')
     .select('*')
     .eq('product_id', itemId)
@@ -633,7 +633,7 @@ async function renderModalComments(itemId) {
 async function submitComment() {
   const input = document.getElementById('modalInput');
   const text = input.value.trim();
-  if (!text || !activeItemId || !supabase) return;
+  if (!text || !activeItemId || !sbClient) return;
   input.value = '';
   const { error } = await sbClient.from('product_comments').insert({ product_id: activeItemId, user_name: currentUser, text });
   if (!error) {
