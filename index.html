@@ -410,7 +410,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 // ══════════════════════════════════════
 //  CONFIG — Supabase 연결
 // ══════════════════════════════════════
-let supabase = null;
+let sbClient = null;
 let currentUser = '';
 let activeItemId = null;
 
@@ -455,7 +455,7 @@ function initApp() {
   const name = localStorage.getItem('rtw_user') || 'me';
   if (!url || !key) { document.getElementById('setupScreen').style.display='flex'; return; }
 
-  supabase = window.supabase.createClient(url, key);
+  sbClient = window.supabase.createClient(url, key);
   currentUser = name;
 
   document.getElementById('setupScreen').style.display = 'none';
@@ -542,8 +542,8 @@ async function loadProducts() {
 
 // ── Realtime 구독 (새 상품 자동 반영)
 function subscribeRealtime() {
-  if (!supabase) return;
-  supabase.channel('products-channel')
+  if (!sbClient) return;
+  sbClient.channel('products-channel')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
       allProducts.unshift(payload.new);
       renderCards();
@@ -564,18 +564,18 @@ function subscribeRealtime() {
 // ══════════════════════════════════════
 async function toggleLike(itemId, e) {
   e && e.stopPropagation();
-  if (!supabase) return;
+  if (!sbClient) return;
   const alreadyLiked = myLikes.has(itemId);
   if (alreadyLiked) {
-    await supabase.from('product_likes').delete().match({ product_id: itemId, user_name: currentUser });
+    await sbClient.from('product_likes').delete().match({ product_id: itemId, user_name: currentUser });
     myLikes.delete(itemId);
   } else {
-    await supabase.from('product_likes').insert({ product_id: itemId, user_name: currentUser });
+    await sbClient.from('product_likes').insert({ product_id: itemId, user_name: currentUser });
     myLikes.add(itemId);
   }
   saveLocal();
   // refresh count from DB
-  const { data } = await supabase.from('products').select('likes').eq('id', itemId).single();
+  const { data } = await sbClient.from('products').select('likes').eq('id', itemId).single();
   if (data) {
     const p = allProducts.find(x => x.id === itemId);
     if (p) p.likes = data.likes;
@@ -635,13 +635,13 @@ async function submitComment() {
   const text = input.value.trim();
   if (!text || !activeItemId || !supabase) return;
   input.value = '';
-  const { error } = await supabase.from('product_comments').insert({ product_id: activeItemId, user_name: currentUser, text });
+  const { error } = await sbClient.from('product_comments').insert({ product_id: activeItemId, user_name: currentUser, text });
   if (!error) {
     await renderModalComments(activeItemId);
     const c = document.getElementById('modalComments');
     setTimeout(() => c.scrollTop = c.scrollHeight, 50);
     // refresh comment count
-    const { data } = await supabase.from('products').select('comments').eq('id', activeItemId).single();
+    const { data } = await sbClient.from('products').select('comments').eq('id', activeItemId).single();
     if (data) {
       const p = allProducts.find(x => x.id === activeItemId);
       if (p) p.comments = data.comments;
