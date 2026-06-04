@@ -1,869 +1,2373 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RTW DAILY — 신상품 트래커</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Samil Vina — Fashion Radar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-<!-- Supabase JS SDK -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --bg:#0d0d0d; --bg2:#161616; --bg3:#1e1e1e; --bg4:#252525;
-  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.15);
-  --text:#f0ede8; --text2:#888; --text3:#555;
-  --accent:#c8f05a; --accent-dim:rgba(200,240,90,0.12);
-  --blue:#6bb5ff; --pink:#ff8fab;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;line-height:1.5}
+  :root {
+    --navy: #1B2A44;
+    --navy-dark: #0F1A2E;
+    --navy-mid: #2C4060;
+    --cream: #F5EFE3;
+    --cream-light: #FAF6EC;
+    --cream-dark: #E8DFC9;
+    --gold: #B8956A;
+    --gold-light: #D4B891;
+    --gold-soft: #E5D4B8;
+    --border: rgba(27, 42, 68, 0.12);
+    --border-strong: rgba(27, 42, 68, 0.25);
+    --text: #1B2A44;
+    --text-muted: #6B7A8F;
+    --text-light: #9AA5B5;
+    --shadow-sm: 0 1px 3px rgba(27, 42, 68, 0.04);
+    --shadow-md: 0 6px 24px rgba(27, 42, 68, 0.08);
+    --shadow-lg: 0 16px 48px rgba(27, 42, 68, 0.12);
+    --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+    --sans: 'Inter Tight', -apple-system, system-ui, sans-serif;
+  }
 
-/* ── SETUP SCREEN ── */
-#setupScreen{
-  position:fixed;inset:0;background:var(--bg);z-index:50000;
-  display:flex;align-items:center;justify-content:center;
-}
-.setup-box{
-  background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
-  padding:40px 44px;max-width:480px;width:90%;
-}
-.setup-logo{font-family:'DM Serif Display',serif;font-size:28px;margin-bottom:6px}
-.setup-logo span{color:var(--accent)}
-.setup-sub{font-size:13px;color:var(--text3);margin-bottom:32px}
-.setup-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.setup-input{
-  width:100%;background:var(--bg3);border:1px solid var(--border2);
-  border-radius:10px;padding:11px 14px;color:var(--text);
-  font-size:13px;font-family:'DM Sans',sans-serif;outline:none;
-  transition:border-color .15s;margin-bottom:16px;
-}
-.setup-input:focus{border-color:var(--accent)}
-.setup-btn{
-  width:100%;padding:12px;background:var(--accent);color:#0d0d0d;
-  border:none;border-radius:10px;font-size:14px;font-weight:500;
-  cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .15s;
-  margin-top:4px;
-}
-.setup-btn:hover{opacity:.88}
-.setup-hint{font-size:11px;color:var(--text3);margin-top:14px;line-height:1.7}
-.setup-hint a{color:var(--blue);text-decoration:none}
-.setup-err{font-size:12px;color:#ff6b6b;margin-top:8px;min-height:16px}
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-/* ── LAYOUT ── */
-.layout{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
-.sidebar::-webkit-scrollbar{width:3px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-.logo{padding:24px 20px 18px;border-bottom:1px solid var(--border)}
-.logo-eye{font-size:9px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
-.logo-title{font-family:'DM Serif Display',serif;font-size:21px;letter-spacing:-.02em}
-.logo-title span{color:var(--accent)}
-.sb-nav{padding:16px 12px 8px}
-.sb-label{font-size:9px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;padding:0 8px;margin-bottom:6px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;font-family:'DM Sans',sans-serif;text-align:left}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--accent-dim);color:var(--accent)}
-.nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.brand-list{padding:6px 12px 16px;flex:1}
-.bi{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:1px}
-.bi:hover{background:var(--bg3)}
-.bi.sub{background:var(--bg4)}
-.bi-left{display:flex;align-items:center;gap:8px}
-.bi-init{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;background:var(--bg4);color:var(--text2)}
-.bi.sub .bi-init{background:var(--accent-dim);color:var(--accent)}
-.bi-name{font-size:12px;color:var(--text)}
-.bi-cat{font-size:10px;color:var(--text3)}
-.tog{width:28px;height:15px;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;position:relative;transition:all .2s;flex-shrink:0}
-.tog.on{background:var(--accent);border-color:var(--accent)}
-.tog::after{content:'';position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:var(--text3);transition:transform .2s}
-.tog.on::after{transform:translateX(13px);background:#0d0d0d}
-.sb-foot{padding:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)}
-.sync-btn{display:flex;align-items:center;gap:6px;width:100%;padding:7px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-bottom:8px}
-.sync-btn:hover{border-color:var(--accent);color:var(--accent)}
-.user-pill{display:flex;align-items:center;gap:6px;margin-bottom:8px}
-.user-avatar{width:20px;height:20px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:500}
+  html, body {
+    background: var(--cream);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
 
-/* ── MAIN ── */
-.main{overflow-y:auto;min-width:0}
-.topbar{position:sticky;top:0;z-index:100;background:rgba(13,13,13,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.topbar-date{font-family:'DM Serif Display',serif;font-size:15px;color:var(--text2)}
-.top-pill{background:var(--accent-dim);color:var(--accent);font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid rgba(200,240,90,.25);font-weight:500}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.search-box{display:flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 12px}
-.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:13px;width:150px;font-family:'DM Sans',sans-serif}
-.search-box input::placeholder{color:var(--text3)}
-.all-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
-.all-btn:hover{border-color:var(--accent);color:var(--accent)}
-.all-btn.on{background:var(--accent-dim);border-color:rgba(200,240,90,.4);color:var(--accent)}
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-/* ── STATS ── */
-.hero{padding:24px 28px 0}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-.sc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:border-color .2s}
-.sc.hi{border-color:rgba(200,240,90,.3)}
-.sc.hi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
-.sc-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
-.sc-val{font-family:'DM Serif Display',serif;font-size:32px;color:var(--text);line-height:1;margin-bottom:4px}
-.sc-val.ac{color:var(--accent)}
-.sc-sub{font-size:11px;color:var(--text3)}
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  img { max-width: 100%; display: block; }
 
-/* ── CHIPS / TABS ── */
-.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.sec-title{font-family:'DM Serif Display',serif;font-size:19px}
-.chips{display:flex;gap:5px;flex-wrap:wrap}
-.chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
-.chip:hover{border-color:var(--border2);color:var(--text)}
-.chip.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
-.view-tabs{display:flex;background:var(--bg3);border-radius:7px;padding:2px}
-.vt{padding:4px 12px;border-radius:5px;cursor:pointer;font-size:11px;color:var(--text3);transition:all .15s;border:none;background:none;font-family:'DM Sans',sans-serif}
-.vt.active{background:var(--bg2);color:var(--text)}
+  /* HEADER */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--navy);
+    color: var(--cream);
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+  }
 
-/* ── FEED ── */
-.feed-section{padding:0 28px 32px}
-.feed-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .nav-brand {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    cursor: pointer;
+  }
 
-/* ── PRODUCT CARD ── */
-.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s;animation:fadeUp .35s ease both}
-.pcard:hover{border-color:var(--border2);transform:translateY(-2px)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.pcard-img{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--bg3);cursor:pointer;display:block;text-decoration:none}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
-.pcard:hover .pcard-img img{transform:scale(1.04)}
-.pcard-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;background:var(--bg3);color:var(--text3)}
-.pcard-new{position:absolute;top:9px;left:9px;background:var(--accent);color:#0d0d0d;font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:4px;z-index:2}
-.pcard-brand-badge{position:absolute;top:9px;right:9px;background:rgba(13,13,13,.75);backdrop-filter:blur(6px);color:var(--text);font-size:9px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;z-index:2}
-.pcard-link-hint{position:absolute;inset:0;background:rgba(0,0,0,0);display:flex;align-items:center;justify-content:center;transition:background .25s;z-index:1}
-.pcard-img:hover .pcard-link-hint{background:rgba(0,0,0,.35)}
-.pcard-link-hint span{opacity:0;transform:translateY(4px);transition:all .2s;background:var(--accent);color:#0d0d0d;font-size:11px;font-weight:500;padding:6px 14px;border-radius:20px}
-.pcard-img:hover .pcard-link-hint span{opacity:1;transform:translateY(0)}
-.pcard-body{padding:13px}
-.pcard-top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
-.pcard-title{font-size:13px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
-.pcard-price{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;flex-shrink:0}
-.pcard-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px}
-.ptag{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--border);color:var(--text3)}
-.fabric-row{margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
-.fabric-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
-.fabric-pill{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid var(--border2);color:var(--text2);background:var(--bg3);display:inline-block}
-.engage-row{display:flex;align-items:center;gap:12px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
-.eng-btn{display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text3);transition:all .15s;padding:3px 6px;border-radius:6px}
-.eng-btn:hover{background:var(--bg3);color:var(--text2)}
-.eng-btn.liked{color:var(--pink)}
-.eng-icon{font-size:13px;transition:transform .15s}
-.eng-count{font-size:12px;font-weight:500}
-.pcard-time{margin-left:auto;font-size:10px;color:var(--text3)}
+  .nav-brand-name {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: var(--cream);
+  }
 
-/* ── SIDE PANEL ── */
-.side-panel{display:flex;flex-direction:column;gap:14px}
-.panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
-.panel-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text3);margin-bottom:14px}
-.bri{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border)}
-.bri:last-child{border-bottom:none}
-.bri-num{font-size:11px;color:var(--text3);width:14px}
-.bri-name{font-size:13px;color:var(--text);flex:1}
-.bri-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.bri-new{font-size:12px;color:var(--accent);font-weight:500}
-.bri-engage{font-size:10px;color:var(--text3)}
-.notif-panel{background:var(--accent-dim);border:1px solid rgba(200,240,90,.25);border-radius:12px;padding:16px}
-.notif-panel h4{font-size:13px;color:var(--accent);margin-bottom:8px}
-.notif-panel p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.65}
-.notif-btn{width:100%;padding:9px;background:var(--accent);color:#0d0d0d;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
-.engage-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.es-card{background:var(--bg3);border-radius:8px;padding:10px 12px}
-.es-label{font-size:10px;color:var(--text3);margin-bottom:4px}
-.es-val{font-size:18px;font-weight:500}
+  .nav-brand-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--gold-light);
+    opacity: 0.4;
+  }
 
-/* ── EMPTY / LOADING ── */
-.empty-feed{text-align:center;padding:60px 20px;color:var(--text3)}
-.empty-icon{font-size:42px;margin-bottom:12px}
-.empty-feed h3{font-size:16px;color:var(--text2);margin-bottom:8px;font-family:'DM Serif Display',serif}
-.loading-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:pulse 1.4s ease infinite}
-@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
-.loading-img{aspect-ratio:3/4;background:var(--bg3)}
-.loading-body{padding:13px}
-.loading-line{height:12px;background:var(--bg3);border-radius:4px;margin-bottom:8px}
-.loading-line.short{width:60%}
+  .nav-brand-sub {
+    font-size: 10px;
+    letter-spacing: 3.5px;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
 
-/* ── COMMENT MODAL ── */
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-backdrop.open{opacity:1;pointer-events:all}
-.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:82vh;display:flex;flex-direction:column;transform:translateY(40px);transition:transform .3s cubic-bezier(.32,.72,0,1)}
-.modal-backdrop.open .modal{transform:translateY(0)}
-.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
-.modal-header{padding:16px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-.modal-thumb{width:44px;height:58px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bg3)}
-.modal-header-info{flex:1;min-width:0}
-.modal-brand{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
-.modal-title{font-size:14px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.modal-close{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.modal-comments{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
-.modal-comments::-webkit-scrollbar{width:3px}
-.comment-item{display:flex;gap:10px;animation:fadeUp .25s ease both}
-.comment-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;background:var(--bg3);color:var(--text2)}
-.comment-body{flex:1}
-.comment-meta{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.comment-name{font-size:12px;font-weight:500;color:var(--text)}
-.comment-time{font-size:11px;color:var(--text3)}
-.comment-text{font-size:13px;color:var(--text2);line-height:1.55}
-.comment-lk{margin-top:5px;font-size:11px;color:var(--text3);display:flex;gap:8px}
-.comment-lk button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--text3);font-family:'DM Sans',sans-serif;padding:0;transition:color .15s}
-.comment-lk button:hover{color:var(--pink)}
-.modal-input-row{padding:12px 20px 20px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center}
-.modal-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:9px 16px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
-.modal-input:focus{border-color:var(--border2)}
-.modal-input::placeholder{color:var(--text3)}
-.modal-send{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;color:#0d0d0d;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--cream-light);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
 
-/* BRAND MANAGE */
-.bm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.bmc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;position:relative}
-.bmc:hover{border-color:var(--border2)}
-.bmc.sub{border-color:rgba(200,240,90,.3)}
-.bmc.sub::after{content:'●';position:absolute;top:10px;right:12px;font-size:8px;color:var(--accent)}
-.bmc-logo{width:40px;height:40px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:12px;font-family:'DM Serif Display',serif;color:var(--text2)}
-.bmc.sub .bmc-logo{background:var(--accent-dim);color:var(--accent)}
-.bmc-name{font-size:14px;font-weight:500;margin-bottom:2px}
-.bmc-cat{font-size:11px;color:var(--text3);margin-bottom:6px}
-.bmc-engage{font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;gap:10px}
-.bmc-foot{display:flex;align-items:center;justify-content:space-between}
-.bmc-tog{width:30px;height:16px;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;position:relative;transition:all .2s}
-.bmc-tog.on{background:var(--accent);border-color:var(--accent)}
-.bmc-tog::after{content:'';position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--text3);transition:transform .2s}
-.bmc-tog.on::after{transform:translateX(14px);background:#0d0d0d}
+  .nav-link {
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.25s ease;
+    position: relative;
+    padding-bottom: 3px;
+  }
 
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.stats-row{grid-template-columns:repeat(2,1fr)}.feed-layout{grid-template-columns:1fr}}
+  .nav-link.active { opacity: 1; }
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gold-light);
+  }
+  .nav-link:hover { opacity: 1; }
+
+  .nav-date {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--cream-light);
+    opacity: 0.55;
+    text-transform: uppercase;
+  }
+
+  /* VIEW CONTAINER */
+  .view { display: none; animation: fadeIn 0.4s ease; }
+  .view.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============= LANDING ============= */
+  .landing {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 40px 60px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-light) 60%, var(--cream) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .landing::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .landing::after {
+    content: '';
+    position: absolute;
+    bottom: 5%;
+    left: -100px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(27, 42, 68, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .landing-content {
+    max-width: 720px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .landing-eyebrow {
+    display: inline-block;
+    padding: 6px 18px;
+    background: var(--navy);
+    color: var(--cream);
+    font-size: 10px;
+    letter-spacing: 3px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .landing-title {
+    font-family: var(--serif);
+    font-size: clamp(48px, 7vw, 84px);
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 16px;
+    letter-spacing: -1.5px;
+    line-height: 1;
+  }
+
+  .landing-title em {
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .landing-tagline {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--text-muted);
+    margin: 0 auto 12px;
+    max-width: 580px;
+    font-style: italic;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  .landing-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    letter-spacing: 3px;
+    margin-bottom: 64px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .landing-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .choice-card {
+    background: var(--cream-light);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 40px 32px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .choice-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--navy);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+  }
+
+  .choice-card > * { position: relative; z-index: 1; }
+
+  .choice-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--navy);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .choice-card:hover::before { transform: translateY(0); }
+  .choice-card:hover h2, .choice-card:hover .choice-desc { color: var(--cream); }
+  .choice-card:hover .choice-cta { color: var(--gold-light); }
+
+  .choice-card h2 {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+    transition: color 0.3s;
+    line-height: 1.1;
+  }
+
+  .choice-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    line-height: 1.7;
+    transition: color 0.3s;
+  }
+
+  .choice-cta {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    transition: color 0.3s;
+    font-weight: 500;
+  }
+
+  .landing-stats {
+    margin-top: 72px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    gap: 56px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    flex-wrap: wrap;
+  }
+
+  .landing-stat { display: flex; align-items: center; gap: 8px; }
+  .pulse { width: 6px; height: 6px; border-radius: 50%; background: #5CC689; animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(92, 198, 137, 0.5); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(92, 198, 137, 0); }
+  }
+
+  /* ============= FEED ============= */
+  .feed-header {
+    padding: 60px 40px 40px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feed-header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .feed-title {
+    font-family: var(--serif);
+    font-size: clamp(40px, 5vw, 60px);
+    font-weight: 500;
+    color: var(--navy);
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .feed-meta {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  .feed-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .feed-search {
+    background: var(--cream-light);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--navy);
+    font-family: inherit;
+    min-width: 180px;
+    transition: border-color 0.2s;
+  }
+
+  .feed-search:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .feed-select {
+    background: var(--cream-light);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--navy);
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .brand-filter-wrap {
+    position: relative;
+    display: inline-block;
+  }
+
+  .brand-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    min-width: 130px;
+    justify-content: space-between;
+  }
+
+  .brand-filter-btn.active {
+    background: var(--navy);
+    color: var(--cream);
+    border-color: var(--navy);
+  }
+
+  .brand-filter-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--cream-light);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    padding: 14px;
+    z-index: 50;
+    min-width: 240px;
+    max-width: 280px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .brand-filter-panel.open { display: block; }
+
+  .brand-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand-filter-clear {
+    font-size: 10px;
+    color: var(--gold);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .brand-filter-clear:hover { color: var(--navy); }
+
+  .brand-filter-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .brand-filter-list::-webkit-scrollbar { width: 4px; }
+  .brand-filter-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  .brand-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--navy);
+    transition: background 0.15s;
+    user-select: none;
+  }
+
+  .brand-filter-item:hover { background: var(--cream-dark); }
+
+  .brand-filter-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--navy);
+    cursor: pointer;
+  }
+
+  .brand-filter-item .count {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-light);
+  }
+
+  .feed-grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 32px 24px;
+  }
+
+  .style-card {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    position: relative;
+  }
+
+  .style-card:hover { transform: translateY(-4px); }
+
+  .style-card-img-wrap {
+    position: relative;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: var(--cream-dark);
+    border-radius: 2px;
+    margin-bottom: 14px;
+  }
+
+  .style-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .style-card:hover .style-card-img { transform: scale(1.04); }
+
+  .style-card-material-row {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 8px;
+    padding: 3px 8px;
+    background: var(--cream-dark);
+    border-radius: 100px;
+  }
+
+  .style-card-stats {
+    display: flex;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .style-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .style-card-brand {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .style-card-country {
+    font-size: 9px;
+    color: var(--text-light);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .style-card-name {
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--navy);
+    margin-bottom: 6px;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+
+  .style-card-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+  }
+
+  .style-card-price {
+    color: var(--navy);
+    font-weight: 500;
+  }
+
+  /* ============= STYLE DETAIL ============= */
+  .detail {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .back-btn:hover { color: var(--navy); }
+
+  .detail-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    margin-bottom: 64px;
+  }
+
+  .detail-img-wrap {
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: var(--cream-dark);
+    border-radius: 2px;
+  }
+
+  .detail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .detail-eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .detail-title {
+    font-family: var(--serif);
+    font-size: 48px;
+    font-weight: 500;
+    color: var(--navy);
+    line-height: 1.05;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+
+  .detail-price {
+    font-size: 22px;
+    color: var(--navy);
+    font-weight: 500;
+    margin-bottom: 32px;
+    font-family: var(--serif);
+  }
+
+  .detail-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .spec-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .spec-value {
+    font-size: 14px;
+    color: var(--navy);
+  }
+
+  .spec-value.material { color: var(--gold); font-weight: 500; }
+
+  .detail-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    flex: 1;
+    padding: 18px;
+    border-radius: 4px;
+    text-align: center;
+  }
+
+  .stat-card.primary {
+    background: var(--navy);
+    color: var(--cream);
+  }
+
+  .stat-card.secondary {
+    background: var(--cream-dark);
+    color: var(--navy);
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 500;
+    font-family: var(--serif);
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    font-weight: 500;
+  }
+
+  .detail-link {
+    display: block;
+    text-align: center;
+    background: var(--navy);
+    color: var(--cream);
+    padding: 16px;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: background 0.2s;
+    font-weight: 500;
+    border-radius: 2px;
+  }
+
+  .detail-link:hover { background: var(--navy-dark); }
+
+  .detail-section {
+    background: var(--cream-light);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .section-eyebrow {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .section-title {
+    font-family: var(--serif);
+    font-size: 24px;
+    color: var(--navy);
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+
+  /* COMMENTS */
+  .comments {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .comment {
+    display: flex;
+    gap: 14px;
+  }
+
+  .comment-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .comment-avatar.gold { background: var(--gold); }
+
+  .comment-body {
+    flex: 1;
+    background: var(--cream);
+    padding: 14px 18px;
+    border-radius: 4px;
+  }
+
+  .comment-meta {
+    font-size: 11px;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+
+  .comment-meta strong { font-weight: 600; }
+
+  .comment-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .comment-form {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .comment-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--cream);
+    color: var(--navy);
+    transition: border-color 0.2s;
+  }
+
+  .comment-input:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+
+  .comment-submit {
+    padding: 12px 24px;
+    background: var(--navy);
+    color: var(--cream);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .comment-submit:hover { background: var(--navy-dark); }
+
+  /* ============= BRAND PROFILE ============= */
+  .brand-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 60px 40px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brand-hero::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(184, 149, 106, 0.2) 0%, transparent 70%);
+  }
+
+  .brand-hero-content { position: relative; z-index: 1; }
+
+  .brand-hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold-light);
+    margin-bottom: 14px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .brand-hero-name {
+    font-family: var(--serif);
+    font-size: clamp(48px, 6vw, 76px);
+    font-weight: 500;
+    margin-bottom: 8px;
+    letter-spacing: -1.5px;
+    line-height: 1;
+  }
+
+  .brand-hero-sub {
+    font-size: 13px;
+    color: var(--cream-light);
+    opacity: 0.7;
+    letter-spacing: 1px;
+  }
+
+  .brand-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .brand-stat {
+    background: var(--cream-light);
+    border: 1px solid var(--border);
+    padding: 24px;
+    border-radius: 4px;
+  }
+
+  .brand-stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .brand-stat-value {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--navy);
+    line-height: 1;
+  }
+
+  .brand-stat-value.gold { color: var(--gold); }
+
+  /* ============= RECAP ============= */
+  .recap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  .recap-hero {
+    background: var(--navy);
+    color: var(--cream);
+    padding: 80px 40px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .recap-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at top left, rgba(184, 149, 106, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(184, 149, 106, 0.1) 0%, transparent 50%);
+  }
+
+  .recap-hero-content { position: relative; z-index: 1; }
+
+  .month-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 8px;
+  }
+
+  .month-nav {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(245, 239, 227, 0.1);
+    border: 1px solid rgba(245, 239, 227, 0.2);
+    color: var(--cream-light);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .month-nav:hover {
+    background: rgba(245, 239, 227, 0.18);
+    border-color: var(--gold-light);
+    color: var(--gold-light);
+  }
+
+  .month-nav:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+
+  .month-nav:disabled:hover {
+    background: rgba(245, 239, 227, 0.1);
+    border-color: rgba(245, 239, 227, 0.2);
+    color: var(--cream-light);
+  }
+
+  .month-dropdown {
+    background: rgba(245, 239, 227, 0.08);
+    border: 1px solid rgba(245, 239, 227, 0.18);
+    color: var(--cream-light);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: inherit;
+    cursor: pointer;
+    margin-bottom: 14px;
+    margin-top: 4px;
+  }
+
+  .month-dropdown option {
+    background: var(--navy);
+    color: var(--cream-light);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .month-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .month-status {
+    display: none;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .month-status.in-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245, 197, 66, 0.15);
+    color: #F5C542;
+    border: 1px solid rgba(245, 197, 66, 0.3);
+  }
+
+  .month-status.complete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(92, 198, 137, 0.12);
+    color: #7ED9A0;
+    border: 1px solid rgba(92, 198, 137, 0.25);
+  }
+
+  .status-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+  }
+
+  .brand-stat-delta {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+    height: 16px;
+  }
+
+  .brand-stat-delta.up { color: #2D8A4E; }
+  .brand-stat-delta.down { color: #C03A3A; }
+  .brand-stat-delta.neutral { color: var(--text-light); }
+
+  .recap-eyebrow {
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold-light);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .recap-month {
+    font-family: var(--serif);
+    font-size: clamp(56px, 7vw, 88px);
+    font-weight: 500;
+    margin-bottom: 12px;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+
+  .recap-sub {
+    font-size: 14px;
+    color: var(--cream-light);
+    opacity: 0.7;
+    font-style: italic;
+    font-family: var(--serif);
+  }
+
+  .recap-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .insights-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .insights-list li {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .insights-list li:last-child { border-bottom: none; }
+
+  .insights-list li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    margin-top: 9px;
+    flex-shrink: 0;
+  }
+
+  .insights-list strong {
+    color: var(--navy);
+    font-weight: 600;
+  }
+
+  /* ============= FOOTER ============= */
+  .footer {
+    background: var(--navy);
+    color: var(--cream-light);
+    padding: 24px 40px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    opacity: 0.85;
+    margin-top: 60px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .nav { padding: 14px 20px; }
+    .nav-links { gap: 18px; font-size: 10px; }
+    .nav-date { display: none; }
+    .landing { padding: 60px 24px 40px; }
+    .landing-choices { grid-template-columns: 1fr; gap: 12px; }
+    .choice-card { padding: 32px 24px; }
+    .choice-card h2 { font-size: 30px; }
+    .landing-stats { gap: 24px; }
+    .feed-header { padding: 40px 24px 32px; }
+    .feed-header-inner { flex-direction: column; align-items: flex-start; }
+    .feed-grid { padding: 32px 24px; gap: 28px 16px; grid-template-columns: repeat(2, 1fr); }
+    .detail, .recap { padding: 24px 24px 60px; }
+    .detail-hero { grid-template-columns: 1fr; gap: 32px; }
+    .detail-title { font-size: 32px; }
+    .brand-hero, .recap-hero { padding: 48px 24px; }
+    .brand-stats, .recap-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 480px) {
+    .feed-grid { grid-template-columns: 1fr; }
+    .style-card-img-wrap { aspect-ratio: 1/1.2; }
+  }
+
+  /* Loading spinner for late JS */
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
 
-<!-- ══ SETUP SCREEN ══ -->
-<div id="setupScreen">
-  <div class="setup-box">
-    <div class="setup-logo">RTW <span>Daily</span></div>
-    <div class="setup-sub">처음 사용 시 Supabase 설정이 필요해요</div>
+<!-- NAVIGATION -->
+<nav class="nav">
+  <div class="nav-brand" onclick="navigate('landing')">
+    <div class="nav-brand-name">SAMIL VINA</div>
+    <div class="nav-brand-divider"></div>
+    <div class="nav-brand-sub">Fashion Radar</div>
+  </div>
+  <div class="nav-links" id="navLinks">
+    <a class="nav-link" onclick="navigate('landing')">Home</a>
+    <a class="nav-link" onclick="navigateToFeed('RTW')">Ready-to-Wear</a>
+    <a class="nav-link" onclick="navigateToFeed('LUXURY')">Luxury</a>
+    <a class="nav-link" onclick="navigate('recap')">Recap</a>
+  </div>
+  <div class="nav-date" id="navDate"></div>
+</nav>
 
-    <div class="setup-label">Supabase URL</div>
-    <input class="setup-input" id="cfgUrl" placeholder="https://xxxx.supabase.co" autocomplete="off">
+<!-- LANDING -->
+<section id="view-landing" class="view active">
+  <div class="landing">
+    <div class="landing-content">
+      <span class="landing-eyebrow">Internal · Trend Intelligence</span>
+      <h1 class="landing-title">Fashion <em>Radar</em></h1>
+      <p class="landing-tagline">A daily curation of styles from the world's leading houses — informing our fabric and material research</p>
+      <p class="landing-sub">Curated by Samil Vina · Dong Nai · Vietnam</p>
 
-    <div class="setup-label">Supabase Anon Key</div>
-    <input class="setup-input" id="cfgKey" placeholder="eyJhbGci..." autocomplete="off">
+      <div class="landing-choices">
+        <button class="choice-card" onclick="navigateToFeed('RTW')">
+          <h2>Ready-to-Wear</h2>
+          <p class="choice-desc">23 brands across US, France, and international markets — accessible fashion that shapes mainstream demand</p>
+          <span class="choice-cta">Enter →</span>
+        </button>
 
-    <div class="setup-label">내 이름 (댓글·좋아요에 표시)</div>
-    <input class="setup-input" id="cfgName" placeholder="예: Mathilda" autocomplete="off">
+        <button class="choice-card" onclick="navigateToFeed('LUXURY')">
+          <h2>Luxury Houses</h2>
+          <p class="choice-desc">21 maisons across France, Italy, Spain, UK, and Japan — heritage craft and runway-defining design</p>
+          <span class="choice-cta">Enter →</span>
+        </button>
+      </div>
 
-    <button class="setup-btn" onclick="saveConfig()">저장하고 시작하기</button>
-    <div class="setup-err" id="setupErr"></div>
-    <div class="setup-hint">
-      Supabase 무료 계정: <a href="https://supabase.com" target="_blank">supabase.com</a>에서 만들 수 있어요.<br>
-      Project Settings → API → URL과 anon key를 복사해서 붙여넣으세요.
+      <div class="landing-stats">
+        <div class="landing-stat"><span class="pulse"></span>16 New Today</div>
+        <div class="landing-stat">186 Styles This Month</div>
+        <div class="landing-stat">44 Brands Tracked</div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- ══ MAIN APP ══ -->
-<div class="layout" id="app" style="display:none">
-
-  <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-eye">Ready-to-Wear</div>
-      <div class="logo-title">RTW <span>Daily</span></div>
-    </div>
-    <div class="sb-nav">
-      <div class="sb-label">메뉴</div>
-      <button class="nav-item active" onclick="setView('feed')"><div class="nav-dot" style="background:var(--accent)"></div>피드</button>
-      <button class="nav-item" onclick="setView('brands')"><div class="nav-dot" style="background:var(--blue)"></div>브랜드 관리</button>
-    </div>
-    <div class="sb-label" style="padding:12px 20px 6px;font-size:9px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase">브랜드</div>
-    <div class="brand-list" id="sidebarList"></div>
-    <div class="sb-foot">
-      <div class="user-pill">
-        <div class="user-avatar" id="userAvatar">?</div>
-        <span id="userName" style="font-size:12px;color:var(--text2)">—</span>
-        <button onclick="resetConfig()" style="margin-left:auto;font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer">설정</button>
+<!-- FEED -->
+<section id="view-feed" class="view">
+  <div class="feed-header">
+    <div class="feed-header-inner">
+      <div>
+        <h1 class="feed-title" id="feedTitle">Ready-to-Wear</h1>
+        <p class="feed-meta" id="feedMeta">— new styles · updated today</p>
       </div>
-      <button class="sync-btn" onclick="loadProducts()">
-        <span id="syncIcon" style="font-size:13px">↻</span>
-        <span id="syncText">지금 새로고침</span>
-      </button>
-      <div>마지막 업데이트: <span id="lastUpdate">—</span></div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <div class="topbar">
-      <div class="topbar-date" id="topDate"></div>
-      <div class="top-pill" id="topPill">로딩 중...</div>
-      <div class="topbar-right">
-        <div class="search-box">
-          <span style="color:var(--text3);font-size:15px">⌕</span>
-          <input type="text" id="searchInput" placeholder="상품명, 브랜드 검색..." oninput="onSearch(this.value)">
-        </div>
-        <button class="all-btn" id="allBtn" onclick="toggleAll()">전체 알림 켜기</button>
-      </div>
-    </div>
-
-    <!-- FEED VIEW -->
-    <div id="feedView">
-      <div class="hero">
-        <div class="stats-row">
-          <div class="sc hi"><div class="sc-label">오늘 신상품</div><div class="sc-val ac" id="stToday">—</div><div class="sc-sub">오늘 수집된 상품</div></div>
-          <div class="sc"><div class="sc-label">오늘 좋아요</div><div class="sc-val" style="color:var(--pink)" id="stLikes">—</div><div class="sc-sub">전 브랜드 합산</div></div>
-          <div class="sc"><div class="sc-label">오늘 댓글</div><div class="sc-val" style="color:var(--blue)" id="stComments">—</div><div class="sc-sub">전 브랜드 합산</div></div>
-          <div class="sc"><div class="sc-label">구독 브랜드</div><div class="sc-val" id="stSubs">0</div><div class="sc-sub">11개 중</div></div>
-        </div>
-      </div>
-      <div class="feed-section">
-        <div class="sec-header">
-          <div class="sec-title">신상품 피드</div>
-          <div class="chips" id="filterChips">
-            <button class="chip active" onclick="setFilter('all',this)">전체</button>
-            <button class="chip" onclick="setFilter('today',this)">오늘</button>
-            <button class="chip" onclick="setFilter('premium',this)">프리미엄</button>
-            <button class="chip" onclick="setFilter('mass',this)">매스마켓</button>
-            <button class="chip" onclick="setFilter('active',this)">액티브</button>
-          </div>
-          <div style="margin-left:auto">
-            <div class="view-tabs">
-              <button class="vt active" onclick="setSort('new',this)">최신순</button>
-              <button class="vt" onclick="setSort('likes',this)">인기순</button>
-              <button class="vt" onclick="setSort('brand',this)">브랜드순</button>
+      <div class="feed-controls">
+        <input type="text" class="feed-search" placeholder="Search styles, brands..." id="searchInput" oninput="renderFeed()" />
+        <select class="feed-select" id="filterCategory" onchange="renderFeed()">
+          <option value="all">All categories</option>
+        </select>
+        <div class="brand-filter-wrap">
+          <button class="feed-select brand-filter-btn" id="brandFilterBtn" onclick="toggleBrandFilter(event)">
+            <span id="brandFilterLabel">All brands</span>
+            <span style="font-size: 9px; margin-left: 6px;">▾</span>
+          </button>
+          <div class="brand-filter-panel" id="brandFilterPanel">
+            <div class="brand-filter-header">
+              <span style="font-size: 11px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 500;">Filter by Brand</span>
+              <button class="brand-filter-clear" onclick="clearBrandFilter()">Clear all</button>
             </div>
+            <div class="brand-filter-list" id="brandFilterList"></div>
           </div>
         </div>
-        <div class="feed-layout">
-          <div id="cardGrid" class="card-grid"></div>
-          <div class="side-panel">
-            <div class="panel">
-              <div class="panel-title">오늘 브랜드 반응</div>
-              <div class="engage-summary">
-                <div class="es-card"><div class="es-label">총 좋아요</div><div class="es-val" style="color:var(--pink)" id="totalLikes">—</div></div>
-                <div class="es-card"><div class="es-label">총 댓글</div><div class="es-val" style="color:var(--blue)" id="totalComments">—</div></div>
-              </div>
-              <div id="brandRank"></div>
-            </div>
-            <div class="notif-panel">
-              <h4>🔔 브라우저 알림</h4>
-              <p>매일 새 상품이 올라오면 알림을 받아보세요.</p>
-              <button class="notif-btn" onclick="reqNotif()">알림 허용하기</button>
-            </div>
-            <div class="panel">
-              <div class="panel-title">연동 상태</div>
-              <div style="font-size:12px;color:var(--text2);line-height:1.9">
-                <div id="dbStatus">🔄 DB 연결 중...</div>
-                <div>🤖 크롤러: 매일 오전 7시 자동</div>
-                <div>🔗 이미지 클릭 → 브랜드 사이트</div>
-                <div>❤️ 좋아요/댓글 실시간 저장</div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <select class="feed-select" id="sortBy" onchange="renderFeed()">
+          <option value="latest">Latest</option>
+          <option value="liked">Most liked</option>
+          <option value="discussed">Most discussed</option>
+        </select>
       </div>
-    </div>
-
-    <!-- BRANDS VIEW -->
-    <div id="brandsView" style="display:none">
-      <div class="hero">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:20px">
-          <div style="font-family:'DM Serif Display',serif;font-size:19px">브랜드 관리</div>
-          <button class="all-btn" id="allBtn2" onclick="toggleAll()">전체 알림 켜기</button>
-        </div>
-      </div>
-      <div style="padding:0 28px 32px">
-        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="chip active" onclick="filterBG('all',this)">전체</button>
-          <button class="chip" onclick="filterBG('premium',this)">프리미엄</button>
-          <button class="chip" onclick="filterBG('mass',this)">매스마켓</button>
-          <button class="chip" onclick="filterBG('active',this)">액티브웨어</button>
-        </div>
-        <div class="bm-grid" id="brandGrid"></div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- COMMENT MODAL -->
-<div class="modal-backdrop" id="commentModal" onclick="handleBackdropClick(event)">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <img class="modal-thumb" id="modalThumb" src="" alt="">
-      <div class="modal-header-info">
-        <div class="modal-brand" id="modalBrand"></div>
-        <div class="modal-title" id="modalTitle"></div>
-      </div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-comments" id="modalComments"></div>
-    <div class="modal-input-row">
-      <input class="modal-input" id="modalInput" placeholder="댓글 달기..." maxlength="300" onkeydown="if(event.key==='Enter') submitComment()">
-      <button class="modal-send" onclick="submitComment()">↑</button>
     </div>
   </div>
-</div>
+  <div class="feed-grid" id="feedGrid"></div>
+</section>
+
+<!-- DETAIL -->
+<section id="view-detail" class="view">
+  <div class="detail">
+    <a class="back-btn" onclick="navigateToFeed(currentCategory)">← Back to feed</a>
+    <div id="detailContent"></div>
+  </div>
+</section>
+
+<!-- BRAND -->
+<section id="view-brand" class="view">
+  <div class="detail">
+    <a class="back-btn" onclick="navigateToFeed(currentCategory)">← Back to feed</a>
+    <div id="brandContent"></div>
+  </div>
+</section>
+
+<!-- RECAP -->
+<section id="view-recap" class="view">
+  <div class="recap">
+    <a class="back-btn" onclick="navigate('landing')">← Back to home</a>
+    <div class="recap-hero">
+      <div class="recap-hero-content">
+        <div class="recap-eyebrow">Monthly Trend Recap</div>
+        <div class="month-selector">
+          <button class="month-nav" id="prevMonth" onclick="navigateMonth(-1)" aria-label="Previous month">←</button>
+          <h1 class="recap-month" id="recapMonth">May 2026</h1>
+          <button class="month-nav" id="nextMonth" onclick="navigateMonth(1)" aria-label="Next month">→</button>
+        </div>
+        <div class="month-meta">
+          <select class="month-dropdown" id="monthDropdown" onchange="selectMonth(this.value)"></select>
+          <span class="month-status" id="monthStatus"></span>
+        </div>
+        <p class="recap-sub" id="recapSub">Insights from 186 styles across 44 brands</p>
+      </div>
+    </div>
+
+    <div class="recap-stats">
+      <div class="brand-stat">
+        <div class="brand-stat-label">Total Styles</div>
+        <div class="brand-stat-value" id="statTotal">186</div>
+        <div class="brand-stat-delta" id="deltaTotal"></div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Top Category</div>
+        <div class="brand-stat-value gold" id="statCategory" style="font-size:22px">Outerwear</div>
+        <div class="brand-stat-delta" id="deltaCategory"></div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Top Material</div>
+        <div class="brand-stat-value" id="statMaterial" style="font-size:22px">Wool</div>
+        <div class="brand-stat-delta" id="deltaMaterial"></div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Most Liked</div>
+        <div class="brand-stat-value gold" id="statMostLiked" style="font-size:22px">DIOR</div>
+        <div class="brand-stat-delta" id="deltaMostLiked"></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Category Breakdown</div>
+      <h3 class="section-title">What's trending this month</h3>
+      <div class="chart-wrap"><canvas id="recapChart"></canvas></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Engagement by Brand — Ready-to-Wear</div>
+      <h3 class="section-title">Top RTW brands by likes & comments</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin: -12px 0 16px;">Most engaged-with RTW brands this month</p>
+      <div class="chart-wrap" style="height: 320px;"><canvas id="brandEngageRTW"></canvas></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Engagement by Brand — Luxury</div>
+      <h3 class="section-title">Top Luxury maisons by likes & comments</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin: -12px 0 16px;">Most engaged-with Luxury houses this month</p>
+      <div class="chart-wrap" style="height: 320px;"><canvas id="brandEngageLuxury"></canvas></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Editor's Note</div>
+      <h3 class="section-title">Key insights for fabric R&D</h3>
+      <ul class="insights-list" id="insightsList">
+        <li><span><strong>Outerwear dominates</strong> with 32% of uploads — driven by Spring/Summer transition pieces. Consider expanding our mid-weight wool blend offerings.</span></li>
+        <li><span><strong>Wool & wool blends</strong> appear in 41% of styles — opportunity for our merino sourcing partnership to scale up.</span></li>
+        <li><span><strong>Neutral tones</strong> (beige, cream, sand) in 58% of styles — earth-tone palette dominates over bold colors.</span></li>
+        <li><span><strong>Recycled materials</strong> trending up 23% MoM — luxury houses leading the shift; our sustainability division should accelerate certifications.</span></li>
+        <li><span>French luxury houses (Chanel, Dior, Hermès) lead engagement — particularly relevant for our EU export clients.</span></li>
+        <li><span><strong>Linen styles</strong> peaked early-month — strong indicator for Summer 2026 fabric orders from Asian RTW partners.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  Samil Vina Co., Ltd. · Internal Use Only · Confidential Trend Research
+</footer>
 
 <script>
-// ══════════════════════════════════════
-//  CONFIG — Supabase 연결
-// ══════════════════════════════════════
-let sbClient = null;
-let currentUser = '';
-let activeItemId = null;
+/* ============================================================
+   SAMIL VINA — FASHION RADAR
+   35 sample styles · self-contained · no backend required
+============================================================ */
 
-const BRANDS_META = {
-  jcrew:      {name:'J.Crew',      cat:'프리미엄', tag:'premium', url:'https://www.jcrew.com/womens-clothing/new-arrivals'},
-  gap:        {name:'Gap',         cat:'캐주얼',   tag:'mass',    url:'https://www.gap.com/browse/women/new-arrivals'},
-  wellmade:   {name:'Wellmade',    cat:'프리미엄', tag:'premium', url:'https://www.wellmade.co.kr/category/new/44/'},
-  alo:        {name:'Alo Yoga',    cat:'액티브웨어',tag:'active',  url:'https://www.aloyoga.com/collections/new-arrivals-women'},
-  skims:      {name:'Skims',       cat:'프리미엄', tag:'premium', url:'https://www.skims.com/collections/new'},
-  target:     {name:'Target',      cat:'매스마켓', tag:'mass',    url:'https://www.target.com/c/women-s-clothing/-/N-5xtg6'},
-  carhartt:   {name:'Carhartt',    cat:'워크웨어', tag:'premium', url:'https://www.carhartt.com/catalog/category/view/id/new_arrivals'},
-  walmart:    {name:'Walmart',     cat:'매스마켓', tag:'mass',    url:'https://www.walmart.com/cp/womens-clothing/1072993'},
-  costco:     {name:'Costco',      cat:'매스마켓', tag:'mass',    url:'https://www.costco.com/women-s-clothing.html'},
-  aeo:        {name:'AEO',         cat:'캐주얼',   tag:'mass',    url:'https://www.ae.com/us/en/c/new-arrivals/womens'},
-  freepeople: {name:'Free People', cat:'보헤미안', tag:'premium', url:'https://www.freepeople.com/new-arrivals/'},
-};
+const TODAY = new Date();
+const TODAY_FMT = TODAY.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+document.getElementById('navDate').textContent = TODAY_FMT.toUpperCase();
 
-function saveConfig() {
-  const url  = document.getElementById('cfgUrl').value.trim();
-  const key  = document.getElementById('cfgKey').value.trim();
-  const name = document.getElementById('cfgName').value.trim();
-  const err  = document.getElementById('setupErr');
-  if (!url || !key || !name) { err.textContent = '모든 항목을 입력해주세요.'; return; }
-  if (!url.startsWith('https://')) { err.textContent = 'URL은 https://로 시작해야 해요.'; return; }
-  localStorage.setItem('rtw_sb_url',  url);
-  localStorage.setItem('rtw_sb_key',  key);
-  localStorage.setItem('rtw_user',    name);
-  err.textContent = '';
-  initApp();
+const STYLES = [
+  // ===== RTW (20 styles) =====
+  { id: 1,  category: 'RTW', brand: 'ARITZIA', country: 'US', name: 'Wilfred Free Slim Knit', price: '$85', subCategory: 'Knitwear', material: 'Merino Wool', img: 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&h=750&fit=crop', likes: 342, comments: 28, link: 'https://aritzia.com', date: 1 },
+  { id: 2,  category: 'RTW', brand: 'ZARA', country: 'US', name: 'Linen Blend Oversized Blazer', price: '$129', subCategory: 'Outerwear', material: 'Linen / Cotton', img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=750&fit=crop', likes: 521, comments: 64, link: 'https://zara.com', date: 1 },
+  { id: 3,  category: 'RTW', brand: 'SÉZANE', country: 'France', name: 'Gaspard Boxy Cardigan', price: '€155', subCategory: 'Knitwear', material: 'Wool Blend', img: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=600&h=750&fit=crop', likes: 289, comments: 41, link: 'https://sezane.com', date: 1 },
+  { id: 4,  category: 'RTW', brand: 'UNIQLO', country: 'International', name: 'Heattech Premium Crew', price: '$19.90', subCategory: 'Basics', material: 'Tech Fabric', img: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=750&fit=crop', likes: 198, comments: 15, link: 'https://uniqlo.com', date: 1 },
+  { id: 5,  category: 'RTW', brand: 'MADEWELL', country: 'US', name: 'Perfect Vintage Straight Jean', price: '$148', subCategory: 'Denim', material: '100% Cotton', img: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=600&h=750&fit=crop', likes: 412, comments: 52, link: 'https://madewell.com', date: 2 },
+  { id: 6,  category: 'RTW', brand: 'MAISON KITSUNÉ', country: 'France', name: 'Fox Head Patch Cotton Tee', price: '€95', subCategory: 'Top', material: 'Organic Cotton', img: 'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=600&h=750&fit=crop', likes: 367, comments: 38, link: 'https://maisonkitsune.com', date: 2 },
+  { id: 7,  category: 'RTW', brand: 'COS', country: 'US', name: 'Oversized Wool Long Coat', price: '$350', subCategory: 'Outerwear', material: 'Virgin Wool', img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&h=750&fit=crop', likes: 478, comments: 49, link: 'https://cos.com', date: 2 },
+  { id: 8,  category: 'RTW', brand: 'H&M', country: 'US', name: 'Linen Wide-Leg Trousers', price: '$49.99', subCategory: 'Bottom', material: 'Pure Linen', img: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=600&h=750&fit=crop', likes: 256, comments: 23, link: 'https://hm.com', date: 2 },
+  { id: 9,  category: 'RTW', brand: 'ISABEL MARANT', country: 'France', name: 'Étoile Bohemian Blouse', price: '€295', subCategory: 'Top', material: 'Cotton Voile', img: 'https://images.unsplash.com/photo-1485518882345-15568b007407?w=600&h=750&fit=crop', likes: 445, comments: 56, link: 'https://isabelmarant.com', date: 3 },
+  { id: 10, category: 'RTW', brand: 'SANDRO', country: 'France', name: 'Tweed Cropped Jacket', price: '€445', subCategory: 'Outerwear', material: 'Wool Tweed', img: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=750&fit=crop', likes: 389, comments: 42, link: 'https://sandro-paris.com', date: 3 },
+  { id: 11, category: 'RTW', brand: 'FREE PEOPLE', country: 'US', name: 'Movement High-Rise Legging', price: '$78', subCategory: 'Activewear', material: 'Tech Knit', img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=750&fit=crop', likes: 312, comments: 29, link: 'https://freepeople.com', date: 3 },
+  { id: 12, category: 'RTW', brand: 'JCREW', country: 'US', name: 'Going-Out Cashmere Sweater', price: '$198', subCategory: 'Knitwear', material: 'Pure Cashmere', img: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&h=750&fit=crop', likes: 287, comments: 31, link: 'https://jcrew.com', date: 3 },
+  { id: 13, category: 'RTW', brand: 'COMPTOIR DES COTONNIERS', country: 'France', name: 'Striped Cotton Knit Top', price: '€115', subCategory: 'Knitwear', material: 'Cotton Blend', img: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=600&h=750&fit=crop', likes: 178, comments: 19, link: 'https://comptoirdescotonniers.com', date: 4 },
+  { id: 14, category: 'RTW', brand: 'ALO', country: 'US', name: 'Airbrush High-Waist Legging', price: '$118', subCategory: 'Activewear', material: 'Recycled Nylon', img: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&h=750&fit=crop', likes: 423, comments: 47, link: 'https://aloyoga.com', date: 4 },
+  { id: 15, category: 'RTW', brand: 'BANANA REPUBLIC', country: 'US', name: 'Italian Wool Trouser', price: '$140', subCategory: 'Bottom', material: 'Italian Wool', img: 'https://images.unsplash.com/photo-1473966968600-fa801b80a88f?w=600&h=750&fit=crop', likes: 234, comments: 22, link: 'https://bananarepublic.com', date: 4 },
+  { id: 16, category: 'RTW', brand: 'NIKE', country: 'International', name: 'Tech Fleece Joggers', price: '$130', subCategory: 'Activewear', material: 'Tech Fleece', img: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600&h=750&fit=crop', likes: 567, comments: 73, link: 'https://nike.com', date: 5 },
+  { id: 17, category: 'RTW', brand: 'ADIDAS', country: 'International', name: 'Originals Track Jacket', price: '$95', subCategory: 'Outerwear', material: 'Recycled Polyester', img: 'https://images.unsplash.com/photo-1556906918-c3eb2ce1aacb?w=600&h=750&fit=crop', likes: 489, comments: 58, link: 'https://adidas.com', date: 5 },
+  { id: 18, category: 'RTW', brand: 'SKIMS', country: 'US', name: 'Cotton Rib Long Slip Dress', price: '$84', subCategory: 'Dress', material: 'Rib Cotton', img: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=750&fit=crop', likes: 612, comments: 89, link: 'https://skims.com', date: 5 },
+  { id: 19, category: 'RTW', brand: 'GAP', country: 'US', name: 'Vintage Soft Hoodie', price: '$59', subCategory: 'Knitwear', material: 'Cotton Fleece', img: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&h=750&fit=crop', likes: 198, comments: 17, link: 'https://gap.com', date: 5 },
+  { id: 20, category: 'RTW', brand: 'AMERICAN VINTAGE', country: 'US', name: 'Sonoma Washed Cotton Tee', price: '$95', subCategory: 'Top', material: 'Washed Cotton', img: 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=600&h=750&fit=crop', likes: 267, comments: 24, link: 'https://americanvintage-store.com', date: 6 },
+
+  // ===== LUXURY (15 styles, clothing only) =====
+  { id: 21, category: 'LUXURY', brand: 'CHANEL', country: 'France', name: 'Tweed Bouclé Jacket S/S 26', price: '€4,800', subCategory: 'Outerwear', material: 'Wool Tweed', img: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&h=750&fit=crop', likes: 1842, comments: 234, link: 'https://chanel.com', date: 1 },
+  { id: 22, category: 'LUXURY', brand: 'GUCCI', country: 'Italy', name: 'Wool Turtleneck Dress', price: '€2,150', subCategory: 'Dress', material: 'Wool Knit', img: 'https://images.unsplash.com/photo-1487537708572-3c850b5e856e?w=600&h=750&fit=crop', likes: 1543, comments: 178, link: 'https://gucci.com', date: 1 },
+  { id: 23, category: 'LUXURY', brand: 'HERMÈS', country: 'France', name: 'Double-Face Cashmere Coat', price: '€8,900', subCategory: 'Outerwear', material: 'Pure Cashmere', img: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=600&h=750&fit=crop', likes: 1267, comments: 145, link: 'https://hermes.com', date: 1 },
+  { id: 24, category: 'LUXURY', brand: 'PRADA', country: 'Italy', name: 'Re-Nylon Bomber Jacket', price: '€2,450', subCategory: 'Outerwear', material: 'Recycled Nylon', img: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=750&fit=crop', likes: 1356, comments: 167, link: 'https://prada.com', date: 2 },
+  { id: 25, category: 'LUXURY', brand: 'LOEWE', country: 'Spain', name: 'Anagram Knit Pullover', price: '€1,290', subCategory: 'Knitwear', material: 'Wool / Silk Blend', img: 'https://images.unsplash.com/photo-1571513722275-4b41940f54b8?w=600&h=750&fit=crop', likes: 989, comments: 112, link: 'https://loewe.com', date: 2 },
+  { id: 26, category: 'LUXURY', brand: 'ISSEY MIYAKE', country: 'Japan', name: 'Pleats Please Long Tunic', price: '€890', subCategory: 'Top', material: 'Pleated Polyester', img: 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=600&h=750&fit=crop', likes: 756, comments: 67, link: 'https://isseymiyake.com', date: 2 },
+  { id: 27, category: 'LUXURY', brand: 'BURBERRY', country: 'UK', name: 'Heritage Chelsea Trench Coat', price: '£1,890', subCategory: 'Outerwear', material: 'Gabardine', img: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=600&h=750&fit=crop', likes: 1623, comments: 198, link: 'https://burberry.com', date: 2 },
+  { id: 28, category: 'LUXURY', brand: 'DIOR', country: 'France', name: 'Bar Wool Jacket Spring 26', price: '€3,800', subCategory: 'Outerwear', material: 'Virgin Wool', img: 'https://images.unsplash.com/photo-1582142306909-195724d33ffc?w=600&h=750&fit=crop', likes: 1934, comments: 267, link: 'https://dior.com', date: 3 },
+  { id: 29, category: 'LUXURY', brand: 'LOUIS VUITTON', country: 'France', name: 'Monogram Silk Shirt Dress', price: '€2,650', subCategory: 'Dress', material: 'Pure Silk', img: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=750&fit=crop', likes: 1856, comments: 234, link: 'https://louisvuitton.com', date: 3 },
+  { id: 30, category: 'LUXURY', brand: 'BOTTEGA VENETA', country: 'Italy', name: 'Intrecciato Knit Top', price: '€1,850', subCategory: 'Knitwear', material: 'Woven Cotton', img: 'https://images.unsplash.com/photo-1599507593499-a3f7d7d97667?w=600&h=750&fit=crop', likes: 1187, comments: 134, link: 'https://bottegaveneta.com', date: 3 },
+  { id: 31, category: 'LUXURY', brand: 'CÉLINE', country: 'France', name: 'Triomphe Logo Wool Coat', price: '€2,950', subCategory: 'Outerwear', material: 'Virgin Wool', img: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&h=750&fit=crop', likes: 1567, comments: 184, link: 'https://celine.com', date: 4 },
+  { id: 32, category: 'LUXURY', brand: 'VALENTINO', country: 'Italy', name: 'Silk Crepe Midi Dress', price: '€2,890', subCategory: 'Dress', material: 'Silk Crepe', img: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=750&fit=crop', likes: 1423, comments: 167, link: 'https://valentino.com', date: 4 },
+  { id: 33, category: 'LUXURY', brand: 'BALENCIAGA', country: 'Spain', name: 'Oversized Logo Hoodie', price: '€995', subCategory: 'Knitwear', material: 'Heavy Cotton', img: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&h=750&fit=crop', likes: 1356, comments: 187, link: 'https://balenciaga.com', date: 4 },
+  { id: 34, category: 'LUXURY', brand: 'YOHJI YAMAMOTO', country: 'Japan', name: 'Asymmetric Black Wool Coat', price: '€2,400', subCategory: 'Outerwear', material: 'Heavy Wool', img: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?w=600&h=750&fit=crop', likes: 689, comments: 78, link: 'https://yohjiyamamoto.co.jp', date: 5 },
+  { id: 35, category: 'LUXURY', brand: 'ALEXANDER MCQUEEN', country: 'UK', name: 'Tailored Wool Blazer', price: '£2,290', subCategory: 'Outerwear', material: 'Italian Wool', img: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&h=750&fit=crop', likes: 1092, comments: 126, link: 'https://alexandermcqueen.com', date: 5 }
+];
+
+// Sample comments
+const SAMPLE_COMMENTS = [
+  { initials: 'LM', name: 'Le Minh', dept: 'R&D', color: 'navy', text: 'Material này phù hợp với loại vải bên mình đang nghiên cứu. Có thể đề xuất cho khách hàng Mỹ.', hours: 2 },
+  { initials: 'PH', name: 'Park Hoon', dept: 'Sales', color: 'gold', text: 'Trend này đang lên — đã thấy ở 3 brand khác trong tuần. Worth tracking for Q3 orders.', hours: 5 },
+  { initials: 'NT', name: 'Nguyen Thi Hoa', dept: 'Merchandising', color: 'navy', text: 'Color palette rất phù hợp với S/S 27. Đề nghị tìm thêm reference từ Italian brands.', hours: 8 },
+  { initials: 'KS', name: 'Kim Soo-Jin', dept: 'Design', color: 'gold', text: 'Construction details đáng học hỏi — đặc biệt là phần stitching ở seam.', hours: 14 }
+];
+
+let currentView = 'landing';
+let currentCategory = 'RTW';
+let currentStyleId = null;
+let currentBrand = null;
+let selectedBrands = new Set();
+let currentMonthIndex = 0;
+let availableMonths = [];
+let popChart = null;
+let brandChart = null;
+let recapChart = null;
+let brandEngageRTW = null;
+let brandEngageLuxury = null;
+
+/* ========== NAVIGATION ========== */
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  currentView = view;
+  updateNav();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (view === 'recap') {
+    setTimeout(renderRecap, 50);
+  }
 }
 
-function resetConfig() {
-  localStorage.removeItem('rtw_sb_url');
-  localStorage.removeItem('rtw_sb_key');
-  document.getElementById('setupScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
+function navigateToFeed(category) {
+  currentCategory = category;
+  navigate('feed');
+  setupFeed();
+  renderFeed();
 }
 
-function initApp() {
-  const url  = localStorage.getItem('rtw_sb_url');
-  const key  = localStorage.getItem('rtw_sb_key');
-  const name = localStorage.getItem('rtw_user') || 'me';
-  if (!url || !key) { document.getElementById('setupScreen').style.display='flex'; return; }
-
-  sbClient = window.supabase.createClient(url, key);
-  currentUser = name;
-
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'grid';
-  document.getElementById('userName').textContent = name;
-  document.getElementById('userAvatar').textContent = name[0].toUpperCase();
-
-  setDate();
-  loadSubscriptions();
-  renderSidebar();
-  renderBrandGrid();
-  loadProducts();
-  subscribeRealtime();
+function openDetail(id) {
+  currentStyleId = id;
+  const style = STYLES.find(s => s.id === id);
+  if (!style) return;
+  currentCategory = style.category;
+  navigate('detail');
+  renderDetail(style);
 }
 
-// ══════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════
-let subs = new Set(JSON.parse(localStorage.getItem('rtw_subs') || '[]'));
-let myLikes = new Set(JSON.parse(localStorage.getItem('rtw_liked') || '[]'));
-let allProducts = [];
-let curFilter = 'all', curSort = 'new', searchQ = '', bgFilter = 'all';
-
-function loadSubscriptions() {
-  subs = new Set(JSON.parse(localStorage.getItem('rtw_subs') || '[]'));
-  myLikes = new Set(JSON.parse(localStorage.getItem('rtw_liked') || '[]'));
-}
-function saveLocal() {
-  localStorage.setItem('rtw_subs', JSON.stringify([...subs]));
-  localStorage.setItem('rtw_liked', JSON.stringify([...myLikes]));
+function openBrand(brandName) {
+  currentBrand = brandName;
+  navigate('brand');
+  renderBrand(brandName);
 }
 
-function toggleBrand(id, e) {
-  e && e.stopPropagation();
-  subs.has(id) ? subs.delete(id) : subs.add(id);
-  saveLocal(); renderSidebar(); renderBrandGrid(); renderCards();
+function updateNav() {
+  const links = document.querySelectorAll('.nav-link');
+  links.forEach(l => l.classList.remove('active'));
+  if (currentView === 'landing') links[0].classList.add('active');
+  else if (currentView === 'feed' && currentCategory === 'RTW') links[1].classList.add('active');
+  else if (currentView === 'feed' && currentCategory === 'LUXURY') links[2].classList.add('active');
+  else if (currentView === 'recap') links[3].classList.add('active');
 }
-function toggleAll() {
-  const allOn = Object.keys(BRANDS_META).every(id => subs.has(id));
-  if (allOn) subs.clear(); else Object.keys(BRANDS_META).forEach(id => subs.add(id));
-  saveLocal(); renderSidebar(); renderBrandGrid(); renderCards(); updateAllBtn();
+
+/* ========== FEED ========== */
+function setupFeed() {
+  const data = STYLES.filter(s => s.category === currentCategory);
+  const title = currentCategory === 'RTW' ? 'Ready-to-Wear' : 'Luxury Houses';
+  document.getElementById('feedTitle').textContent = title;
+  document.getElementById('feedMeta').textContent =
+    data.length + ' styles · Updated ' + TODAY_FMT;
+
+  // Populate category filter
+  const cats = ['all', ...new Set(data.map(s => s.subCategory))];
+  const filter = document.getElementById('filterCategory');
+  filter.innerHTML = cats.map(c =>
+    `<option value="${c}">${c === 'all' ? 'All categories' : c}</option>`
+  ).join('');
+
+  // Reset brand selection when switching category
+  selectedBrands.clear();
+  updateBrandFilterLabel();
+
+  // Populate brand filter list with counts
+  const brandCounts = {};
+  data.forEach(s => {
+    brandCounts[s.brand] = (brandCounts[s.brand] || 0) + 1;
+  });
+  const brands = Object.keys(brandCounts).sort();
+
+  document.getElementById('brandFilterList').innerHTML = brands.map(b => `
+    <label class="brand-filter-item">
+      <input type="checkbox" value="${b}" onchange="toggleBrand('${b.replace(/'/g, "\\'")}', this.checked)" />
+      <span>${b}</span>
+      <span class="count">${brandCounts[b]}</span>
+    </label>
+  `).join('');
+
+  // Close panel if open from previous view
+  document.getElementById('brandFilterPanel').classList.remove('open');
 }
-function updateAllBtn() {
-  const allOn = Object.keys(BRANDS_META).every(id => subs.has(id));
-  ['allBtn','allBtn2'].forEach(bid => {
-    const b = document.getElementById(bid); if (!b) return;
-    b.textContent = allOn ? '전체 알림 끄기' : '전체 알림 켜기';
-    b.classList.toggle('on', allOn);
+
+function toggleBrandFilter(event) {
+  event.stopPropagation();
+  document.getElementById('brandFilterPanel').classList.toggle('open');
+}
+
+function toggleBrand(brand, isChecked) {
+  if (isChecked) selectedBrands.add(brand);
+  else selectedBrands.delete(brand);
+  updateBrandFilterLabel();
+  renderFeed();
+}
+
+function clearBrandFilter() {
+  selectedBrands.clear();
+  document.querySelectorAll('#brandFilterList input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updateBrandFilterLabel();
+  renderFeed();
+}
+
+function updateBrandFilterLabel() {
+  const label = document.getElementById('brandFilterLabel');
+  const btn = document.getElementById('brandFilterBtn');
+  const n = selectedBrands.size;
+  if (n === 0) {
+    label.textContent = 'All brands';
+    btn.classList.remove('active');
+  } else if (n === 1) {
+    label.textContent = [...selectedBrands][0];
+    btn.classList.add('active');
+  } else {
+    label.textContent = n + ' brands selected';
+    btn.classList.add('active');
+  }
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('brandFilterPanel');
+  const btn = document.getElementById('brandFilterBtn');
+  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+
+/* ========== RECAP MONTH SELECTOR ========== */
+function buildAvailableMonths() {
+  availableMonths = [];
+  const now = new Date();
+  const currentY = now.getFullYear();
+  const currentM = now.getMonth();
+  const dayOfMonth = now.getDate();
+  const daysInCurrentMonth = new Date(currentY, currentM + 1, 0).getDate();
+
+  for (let i = 0; i < 13; i++) {
+    const d = new Date(currentY, currentM - i, 1);
+    const isInProgress = (i === 0);
+    availableMonths.push({
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      label: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      key: d.getFullYear() + '-' + d.getMonth(),
+      isInProgress: isInProgress,
+      dayProgress: isInProgress ? dayOfMonth : new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(),
+      daysInMonth: new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+    });
+  }
+
+  const dropdown = document.getElementById('monthDropdown');
+  dropdown.innerHTML = availableMonths.map((m, i) => {
+    const suffix = m.isInProgress ? ' (in progress)' : '';
+    return `<option value="${i}">${m.label}${suffix}</option>`;
+  }).join('');
+}
+
+function selectMonth(index) {
+  currentMonthIndex = parseInt(index);
+  renderRecap();
+}
+
+function navigateMonth(delta) {
+  const newIndex = currentMonthIndex - delta;
+  if (newIndex < 0 || newIndex >= availableMonths.length) return;
+  currentMonthIndex = newIndex;
+  document.getElementById('monthDropdown').value = currentMonthIndex;
+  renderRecap();
+}
+
+function getMonthData(monthIndex) {
+  const monthInfo = availableMonths[monthIndex];
+  const seed = monthIndex * 13 + 7;
+  const rand = (n) => Math.abs(Math.sin(seed * n)) ;
+  const monthName = monthInfo.label.split(' ')[0];
+
+  const fullMonthTotal = 140 + Math.floor(rand(1) * 100);
+  const progressRatio = monthInfo.dayProgress / monthInfo.daysInMonth;
+  const totalStyles = monthInfo.isInProgress
+    ? Math.floor(fullMonthTotal * progressRatio)
+    : fullMonthTotal;
+
+  const cats = ['Outerwear', 'Knitwear', 'Dress', 'Top', 'Denim', 'Basics', 'Activewear', 'Bottom'];
+  const mats = ['Wool', 'Cotton', 'Cashmere', 'Linen', 'Silk', 'Recycled Nylon'];
+
+  const luxBrands = ['CHANEL', 'DIOR', 'HERMÈS', 'LOUIS VUITTON', 'GUCCI', 'BURBERRY', 'CÉLINE', 'PRADA'];
+
+  const seasonal = monthInfo.month;
+  let topCategory, topMaterial;
+  if (seasonal === 11 || seasonal === 0 || seasonal === 1) {
+    topCategory = 'Outerwear';
+    topMaterial = 'Wool';
+  } else if (seasonal >= 2 && seasonal <= 4) {
+    topCategory = 'Knitwear';
+    topMaterial = 'Cashmere';
+  } else if (seasonal >= 5 && seasonal <= 7) {
+    topCategory = ['Top', 'Dress'][Math.floor(rand(2) * 2)];
+    topMaterial = 'Cotton';
+  } else {
+    topCategory = ['Outerwear', 'Knitwear'][Math.floor(rand(3) * 2)];
+    topMaterial = ['Linen', 'Silk'][Math.floor(rand(4) * 2)];
+  }
+
+  const mostLiked = luxBrands[Math.floor(rand(5) * luxBrands.length)];
+
+  const categoryBreakdown = {};
+  cats.forEach((c, i) => {
+    let base = Math.floor(rand(i + 10) * 40) + 5;
+    if (c === topCategory) base = Math.floor(rand(20) * 30) + 50;
+    if (monthInfo.isInProgress) base = Math.floor(base * progressRatio);
+    categoryBreakdown[c] = base;
+  });
+
+  return {
+    monthName: monthName,
+    totalStyles: totalStyles,
+    fullMonthTotal: fullMonthTotal,
+    topCategory: topCategory,
+    topMaterial: topMaterial,
+    mostLiked: mostLiked,
+    categoryBreakdown: categoryBreakdown,
+    rand: rand,
+    isInProgress: monthInfo.isInProgress,
+    dayProgress: monthInfo.dayProgress,
+    daysInMonth: monthInfo.daysInMonth,
+    progressRatio: progressRatio
+  };
+}
+
+function getMonthInsights(data) {
+  const m = data.monthName;
+  if (data.isInProgress) {
+    return [
+      `<strong>Early signal:</strong> ${data.topCategory} leading with ${data.totalStyles} styles uploaded in first ${data.dayProgress} days of ${m}.`,
+      `<strong>${data.topMaterial} & blends</strong> emerging strongly — early indicator for next month's sourcing decisions.`,
+      `Compared to typical month, we are <strong>${data.progressRatio < 0.5 ? 'still early' : 'on track'}</strong> — projected ${data.fullMonthTotal} total by month-end.`,
+      `<strong>${data.mostLiked}</strong> leading engagement so far — worth tracking.`,
+      `Full insights will be available at end of ${m} once all styles are uploaded and reviewed.`
+    ];
+  }
+  return [
+    `<strong>${data.topCategory} dominates</strong> with ${28 + Math.floor(data.rand(11) * 12)}% of uploads in ${m} — strong signal for seasonal fabric planning.`,
+    `<strong>${data.topMaterial} & blends</strong> appear in ${35 + Math.floor(data.rand(12) * 15)}% of styles — opportunity for our sourcing partnerships.`,
+    `<strong>Neutral tones</strong> (beige, cream, sand) in ${50 + Math.floor(data.rand(13) * 15)}% of styles — earth-tone palette dominates this month.`,
+    `<strong>Recycled materials</strong> trending ${data.rand(14) > 0.5 ? 'up' : 'down'} ${10 + Math.floor(data.rand(15) * 20)}% MoM — luxury houses leading the shift.`,
+    `French luxury houses lead engagement — particularly relevant for our EU export clients.`,
+    `<strong>${data.mostLiked}</strong> was the most engaged-with brand this month — worth tracking their fabric choices.`
+  ];
+}
+
+function renderRecap() {
+  if (availableMonths.length === 0) buildAvailableMonths();
+
+  const m = availableMonths[currentMonthIndex];
+  const data = getMonthData(currentMonthIndex);
+
+  document.getElementById('recapMonth').textContent = m.label;
+  document.getElementById('monthDropdown').value = currentMonthIndex;
+
+  const statusEl = document.getElementById('monthStatus');
+  if (data.isInProgress) {
+    statusEl.className = 'month-status in-progress';
+    statusEl.innerHTML = `<span class="status-pulse"></span>In progress · Day ${data.dayProgress} of ${data.daysInMonth}`;
+  } else {
+    statusEl.className = 'month-status complete';
+    statusEl.innerHTML = `<span class="status-pulse" style="background:#7ED9A0;animation:none"></span>Complete · ${data.daysInMonth} days`;
+  }
+
+  const subText = data.isInProgress
+    ? `${data.totalStyles} styles so far · projected ${data.fullMonthTotal} by month-end`
+    : `Insights from ${data.totalStyles} styles across 44 brands`;
+  document.getElementById('recapSub').textContent = subText;
+
+  document.getElementById('statTotal').textContent = data.totalStyles;
+  document.getElementById('statCategory').textContent = data.topCategory;
+  document.getElementById('statMaterial').textContent = data.topMaterial;
+  document.getElementById('statMostLiked').textContent = data.mostLiked;
+
+  const prevIndex = currentMonthIndex + 1;
+  const hasPrev = prevIndex < availableMonths.length;
+  const prevData = hasPrev ? getMonthData(prevIndex) : null;
+
+  setDelta('deltaTotal', data.totalStyles, prevData ? prevData.totalStyles : null, hasPrev, prevData ? prevData.monthName : null);
+  setDeltaText('deltaCategory', prevData ? `Previous: ${prevData.topCategory}` : '');
+  setDeltaText('deltaMaterial', prevData ? `Previous: ${prevData.topMaterial}` : '');
+  setDeltaText('deltaMostLiked', prevData ? `Previous: ${prevData.mostLiked}` : '');
+
+  document.getElementById('prevMonth').disabled = (currentMonthIndex >= availableMonths.length - 1);
+  document.getElementById('nextMonth').disabled = (currentMonthIndex <= 0);
+
+  const insights = getMonthInsights(data);
+  document.getElementById('insightsList').innerHTML = insights.map(t =>
+    `<li><span>${t}</span></li>`
+  ).join('');
+
+  renderRecapChart(data);
+  renderBrandEngageChart('RTW', currentMonthIndex);
+  renderBrandEngageChart('LUXURY', currentMonthIndex);
+}
+
+function setDelta(id, current, prev, hasPrev, prevMonthName) {
+  const el = document.getElementById(id);
+  if (!hasPrev || prev === null || prev === 0) {
+    el.textContent = '';
+    el.className = 'brand-stat-delta';
+    return;
+  }
+  const diff = current - prev;
+  const pct = Math.round((diff / prev) * 100);
+  if (diff > 0) {
+    el.className = 'brand-stat-delta up';
+    el.textContent = `↑ ${pct}% vs ${prevMonthName}`;
+  } else if (diff < 0) {
+    el.className = 'brand-stat-delta down';
+    el.textContent = `↓ ${Math.abs(pct)}% vs ${prevMonthName}`;
+  } else {
+    el.className = 'brand-stat-delta neutral';
+    el.textContent = `Same as ${prevMonthName}`;
+  }
+}
+
+function setDeltaText(id, text) {
+  const el = document.getElementById(id);
+  el.className = 'brand-stat-delta neutral';
+  el.textContent = text;
+}
+
+function renderFeed() {
+  const grid = document.getElementById('feedGrid');
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const cat = document.getElementById('filterCategory').value;
+  const sort = document.getElementById('sortBy').value;
+
+  let data = STYLES.filter(s => s.category === currentCategory);
+
+  if (search) {
+    data = data.filter(s =>
+      s.name.toLowerCase().includes(search) ||
+      s.brand.toLowerCase().includes(search) ||
+      s.material.toLowerCase().includes(search) ||
+      s.subCategory.toLowerCase().includes(search)
+    );
+  }
+
+  if (cat !== 'all') data = data.filter(s => s.subCategory === cat);
+
+  if (selectedBrands.size > 0) data = data.filter(s => selectedBrands.has(s.brand));
+
+  if (sort === 'liked') data.sort((a, b) => b.likes - a.likes);
+  else if (sort === 'discussed') data.sort((a, b) => b.comments - a.comments);
+  else data.sort((a, b) => a.date - b.date);
+
+  if (data.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 80px 0; color: var(--text-muted); font-size: 13px; letter-spacing: 1px;">No styles match your filters.</div>`;
+    return;
+  }
+
+  grid.innerHTML = data.map(s => `
+    <div class="style-card" onclick="openDetail(${s.id})">
+      <div class="style-card-img-wrap">
+        <img class="style-card-img" src="${s.img}" alt="${s.name}" loading="lazy" />
+      </div>
+      <div class="style-card-meta">
+        <span class="style-card-brand">${s.brand}</span>
+        <span class="style-card-country">${s.country}</span>
+      </div>
+      <div class="style-card-name">${s.name}</div>
+      <div class="style-card-material-row">${s.material}</div>
+      <div class="style-card-details">
+        <span>${s.subCategory}</span>
+        <span class="style-card-price">${s.price}</span>
+      </div>
+      <div class="style-card-stats">
+        <span>♥ ${s.likes}</span>
+        <span>💬 ${s.comments}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ========== DETAIL ========== */
+function renderDetail(s) {
+  const html = `
+    <div class="detail-hero">
+      <div class="detail-img-wrap">
+        <img class="detail-img" src="${s.img}" alt="${s.name}" />
+      </div>
+      <div>
+        <div class="detail-eyebrow">${s.brand} · ${s.country}</div>
+        <h1 class="detail-title">${s.name}</h1>
+        <div class="detail-price">${s.price}</div>
+
+        <div class="detail-specs">
+          <div>
+            <div class="spec-label">Category</div>
+            <div class="spec-value">${s.subCategory}</div>
+          </div>
+          <div>
+            <div class="spec-label">Material</div>
+            <div class="spec-value material">${s.material}</div>
+          </div>
+        </div>
+
+        <div class="detail-stats">
+          <div class="stat-card primary">
+            <div class="stat-value">${s.likes}</div>
+            <div class="stat-label">Likes</div>
+          </div>
+          <div class="stat-card secondary">
+            <div class="stat-value">${s.comments}</div>
+            <div class="stat-label">Comments</div>
+          </div>
+        </div>
+
+        <a class="detail-link" href="${s.link}" target="_blank" rel="noopener">View on ${s.brand} →</a>
+        <button class="detail-link" style="background: transparent; color: var(--gold); border: 1px solid var(--gold); margin-top: 8px;" onclick="openBrand('${s.brand}')">View brand profile</button>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+        <div>
+          <div class="section-eyebrow">Engagement Tracker</div>
+          <h3 class="section-title" style="margin-bottom: 0;">Popularity over time</h3>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); letter-spacing: 1px;">Last 14 days</div>
+      </div>
+      <div class="chart-wrap"><canvas id="popChart"></canvas></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Team Discussion</div>
+      <h3 class="section-title">Comments (${s.comments})</h3>
+      <div class="comments" id="commentsList">
+        ${SAMPLE_COMMENTS.map(c => `
+          <div class="comment">
+            <div class="comment-avatar ${c.color === 'gold' ? 'gold' : ''}">${c.initials}</div>
+            <div class="comment-body">
+              <div class="comment-meta"><strong>${c.name}</strong> · ${c.dept} · ${c.hours}h ago</div>
+              <div class="comment-text">${c.text}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="comment-form">
+        <input type="text" class="comment-input" placeholder="Share your thoughts with the team..." id="newComment" onkeydown="if(event.key==='Enter') addComment()" />
+        <button class="comment-submit" onclick="addComment()">Post</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detailContent').innerHTML = html;
+  setTimeout(() => renderPopularityChart(s), 50);
+}
+
+function addComment() {
+  const input = document.getElementById('newComment');
+  const text = input.value.trim();
+  if (!text) return;
+  const list = document.getElementById('commentsList');
+  const div = document.createElement('div');
+  div.className = 'comment';
+  div.innerHTML = `
+    <div class="comment-avatar">You</div>
+    <div class="comment-body">
+      <div class="comment-meta"><strong>You</strong> · Just now</div>
+      <div class="comment-text">${text.replace(/</g, '&lt;')}</div>
+    </div>
+  `;
+  list.appendChild(div);
+  input.value = '';
+}
+
+function renderPopularityChart(s) {
+  const ctx = document.getElementById('popChart');
+  if (!ctx) return;
+  if (popChart) popChart.destroy();
+
+  const days = Array.from({length: 14}, (_, i) => `Day ${i+1}`);
+  // Deterministic pseudo-data based on likes
+  const baseLikes = s.likes / 14;
+  const likes = days.map((_, i) => Math.round(baseLikes * (0.4 + Math.sin(i * 0.5 + s.id) * 0.4 + Math.cos(i * 0.3) * 0.2 + 0.4)));
+  const comments = likes.map(v => Math.round(v * 0.13 + 1));
+
+  popChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        {
+          label: 'Likes',
+          data: likes,
+          borderColor: '#1B2A44',
+          backgroundColor: 'rgba(27, 42, 68, 0.12)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 3,
+          pointBackgroundColor: '#1B2A44',
+          borderWidth: 2
+        },
+        {
+          label: 'Comments',
+          data: comments,
+          borderColor: '#B8956A',
+          backgroundColor: 'rgba(184, 149, 106, 0.15)',
+          tension: 0.4,
+          borderDash: [4, 4],
+          pointRadius: 3,
+          pointBackgroundColor: '#B8956A',
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11, family: 'Inter Tight' }, color: '#6B7A8F', usePointStyle: true, padding: 16 }
+        }
+      },
+      scales: {
+        y: { ticks: { color: '#9AA5B5', font: { size: 10 } }, grid: { color: 'rgba(27,42,68,0.06)' } },
+        x: { ticks: { color: '#9AA5B5', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
   });
 }
 
-// ══════════════════════════════════════
-//  LOAD FROM SUPABASE
-// ══════════════════════════════════════
-async function loadProducts() {
-  const icon = document.getElementById('syncIcon');
-  const text = document.getElementById('syncText');
-  icon.style.transition = 'transform 0.6s'; icon.style.transform = 'rotate(360deg)';
-  text.textContent = '업데이트 중...';
-  showLoadingSkeletons();
+/* ========== BRAND ========== */
+function renderBrand(brandName) {
+  const data = STYLES.filter(s => s.brand === brandName);
+  const country = data[0]?.country || '';
+  const totalLikes = data.reduce((sum, s) => sum + s.likes, 0);
+  const avgLikes = Math.round(totalLikes / data.length);
 
-  try {
-    const { data, error } = await sbClient
-      .from('products')
-      .select('*')
-      .order('scraped_at', { ascending: false })
-      .limit(200);
-
-    if (error) throw error;
-    allProducts = data || [];
-    document.getElementById('dbStatus').textContent = `✅ DB 연결됨 (${allProducts.length}개 상품)`;
-    renderCards();
-    renderBrandRank();
-  } catch (e) {
-    console.error(e);
-    document.getElementById('dbStatus').textContent = '❌ DB 연결 실패 — 설정을 확인해주세요';
-    showError();
-  }
-
-  setTimeout(() => { icon.style.transform = ''; }, 700);
-  text.textContent = '지금 새로고침';
-  document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-}
-
-// ── Realtime 구독 (새 상품 자동 반영)
-function subscribeRealtime() {
-  if (!sbClient) return;
-  sbClient.channel('products-channel')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
-      allProducts.unshift(payload.new);
-      renderCards();
-      renderBrandRank();
-      // 브라우저 알림
-      if (Notification.permission === 'granted') {
-        const b = BRANDS_META[payload.new.brand_id];
-        new Notification(`RTW Daily — ${b?.name || payload.new.brand_id} 신상품!`, {
-          body: payload.new.title,
-        });
-      }
-    })
-    .subscribe();
-}
-
-// ══════════════════════════════════════
-//  LIKES / COMMENTS  (Supabase)
-// ══════════════════════════════════════
-async function toggleLike(itemId, e) {
-  e && e.stopPropagation();
-  if (!sbClient) return;
-  const alreadyLiked = myLikes.has(itemId);
-  if (alreadyLiked) {
-    await sbClient.from('product_likes').delete().match({ product_id: itemId, user_name: currentUser });
-    myLikes.delete(itemId);
-  } else {
-    await sbClient.from('product_likes').insert({ product_id: itemId, user_name: currentUser });
-    myLikes.add(itemId);
-  }
-  saveLocal();
-  // refresh count from DB
-  const { data } = await sbClient.from('products').select('likes').eq('id', itemId).single();
-  if (data) {
-    const p = allProducts.find(x => x.id === itemId);
-    if (p) p.likes = data.likes;
-    const cnt = document.getElementById('lk-cnt-'+itemId);
-    const btn = document.getElementById('lk-btn-'+itemId);
-    if (cnt) cnt.textContent = fmtNum(data.likes);
-    if (btn) { btn.classList.toggle('liked', !alreadyLiked); btn.querySelector('.eng-icon').style.transform='scale(1.4)'; setTimeout(()=>{if(btn.querySelector('.eng-icon'))btn.querySelector('.eng-icon').style.transform=''},200); }
-  }
-  updateStats();
-}
-
-async function openComments(itemId, e) {
-  e && e.stopPropagation();
-  activeItemId = itemId;
-  const item = allProducts.find(f => f.id === itemId);
-  if (!item) return;
-  const bMeta = BRANDS_META[item.brand_id] || {};
-  document.getElementById('modalThumb').src  = item.image_url || '';
-  document.getElementById('modalBrand').textContent = bMeta.name || item.brand_id;
-  document.getElementById('modalTitle').textContent  = item.title;
-  document.getElementById('modalInput').value = '';
-  await renderModalComments(itemId);
-  document.getElementById('commentModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => document.getElementById('modalInput').focus(), 350);
-}
-
-async function renderModalComments(itemId) {
-  const container = document.getElementById('modalComments');
-  container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">로딩 중...</div>';
-  const { data: comments } = await sbClient
-    .from('product_comments')
-    .select('*')
-    .eq('product_id', itemId)
-    .order('created_at', { ascending: true });
-
-  if (!comments || !comments.length) {
-    container.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">💬</div><div>첫 번째 댓글을 남겨보세요!</div></div>`;
-    return;
-  }
-  container.innerHTML = `<div style="text-align:center;font-size:11px;color:var(--text3);padding:4px">${comments.length}개 댓글</div>` +
-    comments.map((c, i) => `
-    <div class="comment-item" style="animation-delay:${i*.03}s">
-      <div class="comment-avatar" style="background:${avatarColor(c.user_name)}">${c.user_name[0].toUpperCase()}</div>
-      <div class="comment-body">
-        <div class="comment-meta">
-          <span class="comment-name">${c.user_name}</span>
-          <span class="comment-time">${timeAgo(c.created_at)}</span>
-        </div>
-        <div class="comment-text">${escHtml(c.text)}</div>
+  const html = `
+    <div class="brand-hero">
+      <div class="brand-hero-content">
+        <div class="brand-hero-eyebrow">Brand Profile</div>
+        <h1 class="brand-hero-name">${brandName}</h1>
+        <p class="brand-hero-sub">${country} · ${data.length} styles tracked this period</p>
       </div>
-    </div>`).join('');
+    </div>
+
+    <div class="brand-stats">
+      <div class="brand-stat">
+        <div class="brand-stat-label">Total Styles</div>
+        <div class="brand-stat-value">${data.length}</div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Avg Likes</div>
+        <div class="brand-stat-value gold">${avgLikes}</div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Total Likes</div>
+        <div class="brand-stat-value">${totalLikes.toLocaleString()}</div>
+      </div>
+      <div class="brand-stat">
+        <div class="brand-stat-label">Avg / Week</div>
+        <div class="brand-stat-value gold">${(data.length / 4).toFixed(1)}</div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Upload Activity</div>
+      <h3 class="section-title">Style upload frequency — last 30 days</h3>
+      <div class="chart-wrap"><canvas id="brandChart"></canvas></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="section-eyebrow">Collection</div>
+      <h3 class="section-title">All new styles</h3>
+      <div class="feed-grid" style="padding: 0; margin: 16px 0 0; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px 16px;">
+        ${data.map(s => `
+          <div class="style-card" onclick="openDetail(${s.id})">
+            <div class="style-card-img-wrap">
+              <img class="style-card-img" src="${s.img}" alt="${s.name}" loading="lazy" />
+            </div>
+            <div class="style-card-name" style="font-size: 15px;">${s.name}</div>
+            <div class="style-card-details">
+              <span>${s.subCategory}</span>
+              <span class="style-card-price">${s.price}</span>
+            </div>
+            <div class="style-card-stats">
+              <span>♥ ${s.likes}</span>
+              <span>💬 ${s.comments}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('brandContent').innerHTML = html;
+  setTimeout(() => renderBrandChart(brandName), 50);
 }
 
-async function submitComment() {
-  const input = document.getElementById('modalInput');
-  const text = input.value.trim();
-  if (!text || !activeItemId || !sbClient) return;
-  input.value = '';
-  const { error } = await sbClient.from('product_comments').insert({ product_id: activeItemId, user_name: currentUser, text });
-  if (!error) {
-    await renderModalComments(activeItemId);
-    const c = document.getElementById('modalComments');
-    setTimeout(() => c.scrollTop = c.scrollHeight, 50);
-    // refresh comment count
-    const { data } = await sbClient.from('products').select('comments').eq('id', activeItemId).single();
-    if (data) {
-      const p = allProducts.find(x => x.id === activeItemId);
-      if (p) p.comments = data.comments;
-      const el = document.getElementById('cm-cnt-'+activeItemId);
-      if (el) el.textContent = fmtNum(data.comments);
+function renderBrandChart(brandName) {
+  const ctx = document.getElementById('brandChart');
+  if (!ctx) return;
+  if (brandChart) brandChart.destroy();
+
+  const days = Array.from({length: 30}, (_, i) => i + 1);
+  // Deterministic pseudo-uploads
+  const seed = brandName.charCodeAt(0) + brandName.charCodeAt(1);
+  const uploads = days.map((d, i) => {
+    const v = Math.abs(Math.sin(seed + i * 0.6)) * 4;
+    return Math.floor(v);
+  });
+
+  brandChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: days,
+      datasets: [{
+        label: 'Styles uploaded',
+        data: uploads,
+        backgroundColor: '#1B2A44',
+        borderRadius: 3,
+        barThickness: 'flex',
+        maxBarThickness: 14
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, color: '#9AA5B5', font: { size: 10 } },
+          grid: { color: 'rgba(27,42,68,0.06)' }
+        },
+        x: { ticks: { color: '#9AA5B5', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+/* ========== RECAP CHART ========== */
+function renderRecapChart(monthData) {
+  const ctx = document.getElementById('recapChart');
+  if (!ctx) return;
+  if (recapChart) recapChart.destroy();
+
+  const breakdown = monthData ? monthData.categoryBreakdown : null;
+  let labels, data;
+
+  if (breakdown) {
+    const sorted = Object.entries(breakdown).sort((a, b) => b[1] - a[1]);
+    labels = sorted.map(e => e[0]);
+    data = sorted.map(e => e[1]);
+  } else {
+    const counts = {};
+    STYLES.forEach(s => {
+      counts[s.subCategory] = (counts[s.subCategory] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    labels = sorted.map(c => c[0]);
+    data = sorted.map(c => c[1] * 6 + Math.floor(Math.random() * 8));
+  }
+
+  const colors = ['#1B2A44', '#2C4060', '#B8956A', '#D4B891', '#1B2A44', '#2C4060', '#B8956A', '#D4B891', '#1B2A44'];
+
+  recapChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Styles',
+        data: data,
+        backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+        borderRadius: 4,
+        barThickness: 'flex',
+        maxBarThickness: 24
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#9AA5B5', font: { size: 11 } }, grid: { color: 'rgba(27,42,68,0.06)' } },
+        y: { ticks: { color: '#1B2A44', font: { size: 12, family: 'Inter Tight' } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+// Set recap month
+buildAvailableMonths();
+
+function renderBrandEngageChart(category, monthIdx) {
+  const canvasId = category === 'RTW' ? 'brandEngageRTW' : 'brandEngageLuxury';
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+
+  if (category === 'RTW' && brandEngageRTW) brandEngageRTW.destroy();
+  if (category === 'LUXURY' && brandEngageLuxury) brandEngageLuxury.destroy();
+
+  const monthFactor = monthIdx !== undefined
+    ? 0.7 + Math.abs(Math.sin(monthIdx * 1.7 + (category === 'RTW' ? 0 : 1.3))) * 0.6
+    : 1;
+
+  const byBrand = {};
+  STYLES.filter(s => s.category === category).forEach(s => {
+    if (!byBrand[s.brand]) byBrand[s.brand] = { likes: 0, comments: 0 };
+    const brandSeed = (s.brand.charCodeAt(0) + (monthIdx || 0) * 7) % 100 / 100;
+    byBrand[s.brand].likes += Math.round(s.likes * monthFactor * (0.6 + brandSeed * 0.8));
+    byBrand[s.brand].comments += Math.round(s.comments * monthFactor * (0.6 + brandSeed * 0.8));
+  });
+
+  const sorted = Object.entries(byBrand)
+    .sort((a, b) => (b[1].likes + b[1].comments * 5) - (a[1].likes + a[1].comments * 5));
+
+  const labels = sorted.map(b => b[0]);
+  const likesData = sorted.map(b => b[1].likes);
+  const commentsData = sorted.map(b => b[1].comments);
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Likes',
+          data: likesData,
+          backgroundColor: '#1B2A44',
+          borderRadius: 3,
+          barThickness: 'flex',
+          maxBarThickness: 16
+        },
+        {
+          label: 'Comments',
+          data: commentsData,
+          backgroundColor: '#B8956A',
+          borderRadius: 3,
+          barThickness: 'flex',
+          maxBarThickness: 16
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11, family: 'Inter Tight' }, color: '#6B7A8F', usePointStyle: true, padding: 16 }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return ctx.dataset.label + ': ' + ctx.parsed.x.toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#9AA5B5', font: { size: 10 } }, grid: { color: 'rgba(27,42,68,0.06)' } },
+        y: { ticks: { color: '#1B2A44', font: { size: 11, family: 'Inter Tight' } }, grid: { display: false } }
+      }
+    }
+  });
+
+  if (category === 'RTW') brandEngageRTW = chart;
+  else brandEngageLuxury = chart;
+}
+
+// Init
+updateNav();
+
+/* ============================================================
+   SUPABASE LIVE SYNC
+   - 사이트 열릴 때 DB에서 최신 상품 자동으로 불러옴
+   - 좋아요/댓글 실시간 저장
+   - 처음 한 번만 설정하면 이후 자동
+============================================================ */
+const SB_URL = 'https://wxgmivqzxzlfldlyzwor.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4Z21pdnF6eHpsZmxkbHl6d29yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMzUxNjAsImV4cCI6MjA1ODcxMTE2MH0.Iuu_Au1D-ag1BoGKWsS2AaEhhTNWsvdW_yr3bWJ4Syw';
+let sbClient = null;
+let currentUserName = localStorage.getItem('rtw_user') || '';
+
+// 이름 설정 팝업
+function checkUser() {
+  if (!currentUserName) {
+    const name = prompt('안녕하세요! 이름을 입력해주세요 (댓글·좋아요에 표시됩니다):');
+    if (name && name.trim()) {
+      currentUserName = name.trim();
+      localStorage.setItem('rtw_user', currentUserName);
     }
   }
 }
 
-function closeModal() {
-  document.getElementById('commentModal').classList.remove('open');
-  document.body.style.overflow = '';
-  activeItemId = null;
-}
-function handleBackdropClick(e) { if (e.target === document.getElementById('commentModal')) closeModal(); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-// ══════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════
-function getFiltered() {
-  let items = [...allProducts];
-  if (subs.size > 0) items = items.filter(p => subs.has(p.brand_id));
-  if (curFilter === 'today') {
-    const today = new Date(); today.setHours(0,0,0,0);
-    items = items.filter(p => new Date(p.scraped_at) >= today);
-  } else if (curFilter !== 'all') {
-    const ids = Object.entries(BRANDS_META).filter(([,v]) => v.tag === curFilter).map(([k]) => k);
-    items = items.filter(p => ids.includes(p.brand_id));
+// Supabase 연결 & 데이터 로드
+async function initSupabase() {
+  try {
+    sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+    await loadLiveProdcuts();
+    subscribeToChanges();
+    console.log('✅ Supabase 연결 완료');
+  } catch(e) {
+    console.log('Supabase 연결 실패 — 샘플 데이터로 실행:', e);
   }
-  if (searchQ) items = items.filter(p => p.title.toLowerCase().includes(searchQ) || (BRANDS_META[p.brand_id]?.name||'').toLowerCase().includes(searchQ));
-  if (curSort === 'likes') items.sort((a,b) => b.likes - a.likes);
-  else if (curSort === 'brand') items.sort((a,b) => a.brand_id.localeCompare(b.brand_id));
-  return items;
 }
 
-function renderCards() {
-  const items = getFiltered();
-  const grid = document.getElementById('cardGrid');
-  updateAllBtn();
-  document.getElementById('stSubs').textContent = subs.size;
+// DB에서 상품 불러와서 STYLES 업데이트
+async function loadLiveProdcuts() {
+  if (!sbClient) return;
+  const { data, error } = await sbClient
+    .from('products')
+    .select('*')
+    .order('scraped_at', { ascending: false })
+    .limit(100);
 
-  if (!items.length && allProducts.length === 0) { showLoadingSkeletons(); return; }
-  if (!items.length) {
-    grid.innerHTML = subs.size === 0
-      ? `<div class="empty-feed" style="grid-column:1/-1"><div class="empty-icon">🏷</div><h3>브랜드를 구독하세요</h3><p style="font-size:13px;color:var(--text3)">사이드바에서 브랜드 알림을 켜면 피드가 표시됩니다.</p></div>`
-      : `<div class="empty-feed" style="grid-column:1/-1"><div class="empty-icon">🔍</div><h3>결과 없음</h3><p style="font-size:13px;color:var(--text3)">크롤러가 아직 실행되지 않았거나 검색 결과가 없어요.</p></div>`;
-    updateStats();
-    return;
-  }
+  if (error || !data || data.length === 0) return;
 
-  const today = new Date(); today.setHours(0,0,0,0);
-  const todayCnt = items.filter(p => new Date(p.scraped_at) >= today).length;
-  document.getElementById('topPill').textContent = `오늘 ${todayCnt}개 신상품`;
-  document.getElementById('stToday').textContent = todayCnt;
+  // DB 데이터를 STYLES 형식으로 변환해서 앞에 추가
+  const newStyles = data.map((p, i) => ({
+    id: 1000 + i,
+    category: 'RTW',
+    brand: (p.brand_id || '').toUpperCase(),
+    country: 'US',
+    name: p.title || '',
+    price: p.price || '',
+    subCategory: (p.tags && p.tags[0]) || 'New',
+    material: p.fabric || '',
+    img: p.image_url || 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&h=750&fit=crop',
+    likes: p.likes || 0,
+    comments: p.comments || 0,
+    link: p.product_url || '#',
+    date: 1,
+    dbId: p.id,
+    isLive: true
+  }));
 
-  grid.innerHTML = items.map((p, i) => {
-    const bMeta = BRANDS_META[p.brand_id] || {name: p.brand_id, url:'#'};
-    const isNew = new Date(p.scraped_at) >= today;
-    const liked = myLikes.has(p.id);
-    const tags = Array.isArray(p.tags) ? p.tags : [];
-    return `
-    <div class="pcard" style="animation-delay:${i*.04}s">
-      <a class="pcard-img" href="${bMeta.url}" target="_blank" rel="noopener">
-        <img src="${p.image_url || ''}" alt="${escHtml(p.title)}" loading="lazy"
-             onerror="this.parentNode.innerHTML='<div class=pcard-img-ph>👗</div>'">
-        ${isNew ? '<div class="pcard-new">NEW</div>' : ''}
-        <div class="pcard-brand-badge">${bMeta.name}</div>
-        <div class="pcard-link-hint"><span>🔗 사이트에서 보기</span></div>
-      </a>
-      <div class="pcard-body">
-        <div class="pcard-tags">${tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
-        <div class="pcard-top-row">
-          <div class="pcard-title">${escHtml(p.title)}</div>
-          <div class="pcard-price">${escHtml(p.price || '')}</div>
-        </div>
-        ${p.fabric ? `<div class="fabric-row"><div class="fabric-label">소재</div><span class="fabric-pill">${escHtml(p.fabric)}</span></div>` : ''}
-        <div class="engage-row">
-          <button class="eng-btn ${liked?'liked':''}" id="lk-btn-${p.id}" onclick="toggleLike('${p.id}',event)">
-            <span class="eng-icon">${liked?'❤️':'🤍'}</span>
-            <span class="eng-count" id="lk-cnt-${p.id}">${fmtNum(p.likes||0)}</span>
-          </button>
-          <button class="eng-btn" onclick="openComments('${p.id}',event)">
-            <span class="eng-icon">💬</span>
-            <span class="eng-count" id="cm-cnt-${p.id}">${fmtNum(p.comments||0)}</span>
-          </button>
-          <div class="pcard-time">${timeAgo(p.scraped_at)}</div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  updateStats();
-}
-
-function updateStats() {
-  const items = getFiltered();
-  const tl = items.reduce((s,p)=>s+(p.likes||0),0);
-  const tc = items.reduce((s,p)=>s+(p.comments||0),0);
-  ['stLikes','totalLikes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=fmtNum(tl); });
-  ['stComments','totalComments'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=fmtNum(tc); });
-}
-
-function renderBrandRank() {
-  const countByBrand = {};
-  const likesByBrand = {};
-  const cmtsByBrand  = {};
-  allProducts.forEach(p => {
-    countByBrand[p.brand_id] = (countByBrand[p.brand_id]||0) + 1;
-    likesByBrand[p.brand_id] = (likesByBrand[p.brand_id]||0) + (p.likes||0);
-    cmtsByBrand[p.brand_id]  = (cmtsByBrand[p.brand_id]||0)  + (p.comments||0);
+  // 기존 STYLES 앞에 추가 (샘플 데이터는 유지)
+  newStyles.forEach(s => {
+    if (!STYLES.find(x => x.dbId === s.dbId)) {
+      STYLES.unshift(s);
+    }
   });
-  const sorted = Object.entries(BRANDS_META).sort((a,b)=>(likesByBrand[b[0]]||0)-(likesByBrand[a[0]]||0));
-  document.getElementById('brandRank').innerHTML = sorted.map(([id,m],i)=>`
-    <div class="bri">
-      <span class="bri-num">${i+1}</span>
-      <span class="bri-name">${m.name}</span>
-      <div class="bri-right">
-        <span class="bri-new">+${countByBrand[id]||0} 상품</span>
-        <span class="bri-engage">❤️ ${fmtNum(likesByBrand[id]||0)} · 💬 ${fmtNum(cmtsByBrand[id]||0)}</span>
-      </div>
-    </div>`).join('');
+
+  // 피드 새로고침
+  if (currentView === 'feed') renderFeed();
+  console.log(`📦 ${newStyles.length}개 신상품 로드됨`);
 }
 
-function renderSidebar() {
-  document.getElementById('sidebarList').innerHTML = Object.entries(BRANDS_META).map(([id,m])=>`
-    <div class="bi ${subs.has(id)?'sub':''}" onclick="toggleBrand('${id}')">
-      <div class="bi-left">
-        <div class="bi-init">${m.name[0]}</div>
-        <div><div class="bi-name">${m.name}</div><div class="bi-cat">${m.cat}</div></div>
-      </div>
-      <button class="tog ${subs.has(id)?'on':''}" onclick="toggleBrand('${id}',event)"></button>
-    </div>`).join('');
+// 실시간 업데이트 구독
+function subscribeToChanges() {
+  if (!sbClient) return;
+  sbClient.channel('products')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'products' }, payload => {
+      const p = payload.new;
+      STYLES.unshift({
+        id: Date.now(),
+        category: 'RTW',
+        brand: (p.brand_id || '').toUpperCase(),
+        country: 'US',
+        name: p.title || '',
+        price: p.price || '',
+        subCategory: (p.tags && p.tags[0]) || 'New',
+        material: p.fabric || '',
+        img: p.image_url || 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=600&h=750&fit=crop',
+        likes: 0,
+        comments: 0,
+        link: p.product_url || '#',
+        date: 1,
+        dbId: p.id,
+        isLive: true
+      });
+      if (currentView === 'feed' && currentCategory === 'RTW') renderFeed();
+    })
+    .subscribe();
 }
 
-function renderBrandGrid() {
-  const list = bgFilter==='all' ? Object.entries(BRANDS_META) : Object.entries(BRANDS_META).filter(([,m])=>m.tag===bgFilter);
-  document.getElementById('brandGrid').innerHTML = list.map(([id,m])=>`
-    <div class="bmc ${subs.has(id)?'sub':''}">
-      <div class="bmc-logo">${m.name[0]}</div>
-      <div class="bmc-name">${m.name}</div>
-      <div class="bmc-cat">${m.cat}</div>
-      <div class="bmc-engage">
-        <span>+${allProducts.filter(p=>p.brand_id===id).length} 상품</span>
-      </div>
-      <div class="bmc-foot">
-        <a href="${m.url}" target="_blank" rel="noopener" style="font-size:11px;color:var(--blue);text-decoration:none" onclick="event.stopPropagation()">사이트 →</a>
-        <button class="bmc-tog ${subs.has(id)?'on':''}" onclick="toggleBrand('${id}',event)"></button>
-      </div>
-    </div>`).join('');
+// 좋아요 저장
+async function saveLikeToDB(dbId, liked) {
+  if (!sbClient || !dbId) return;
+  checkUser();
+  if (liked) {
+    await sbClient.from('product_likes').insert({ product_id: dbId, user_name: currentUserName });
+  } else {
+    await sbClient.from('product_likes').delete().match({ product_id: dbId, user_name: currentUserName });
+  }
 }
 
-function showLoadingSkeletons() {
-  document.getElementById('cardGrid').innerHTML = Array(8).fill(`
-    <div class="loading-card">
-      <div class="loading-img"></div>
-      <div class="loading-body">
-        <div class="loading-line"></div>
-        <div class="loading-line short"></div>
-      </div>
-    </div>`).join('');
+// 댓글 저장
+async function saveCommentToDB(dbId, text) {
+  if (!sbClient || !dbId || !text) return;
+  checkUser();
+  await sbClient.from('product_comments').insert({ product_id: dbId, user_name: currentUserName, text });
 }
 
-function showError() {
-  document.getElementById('cardGrid').innerHTML = `<div class="empty-feed" style="grid-column:1/-1">
-    <div class="empty-icon">⚠️</div>
-    <h3>DB 연결 실패</h3>
-    <p style="font-size:13px;color:var(--text3)">Supabase URL과 Key를 확인해주세요.<br>설정 버튼을 눌러 다시 입력할 수 있어요.</p>
-  </div>`;
-}
-
-// ══════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════
-function setFilter(f, el) {
-  curFilter = f;
-  document.querySelectorAll('#filterChips .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); renderCards();
-}
-function setSort(s, el) {
-  curSort = s;
-  document.querySelectorAll('.vt').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active'); renderCards();
-}
-function onSearch(q) { searchQ = q.toLowerCase(); renderCards(); }
-function setView(v) {
-  document.getElementById('feedView').style.display   = v==='feed'  ?'block':'none';
-  document.getElementById('brandsView').style.display = v==='brands'?'block':'none';
-  document.querySelectorAll('.nav-item').forEach((el,i)=>el.classList.toggle('active',(i===0&&v==='feed')||(i===1&&v==='brands')));
-}
-function filterBG(f, el) {
-  bgFilter = f;
-  document.querySelectorAll('#brandsView .chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); renderBrandGrid();
-}
-function fmtNum(n) { if(n>=1000) return (n/1000).toFixed(1).replace('.0','')+'k'; return String(n); }
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function avatarColor(u) {
-  const c=['#1e2e1e','#1e1e2e','#2e1e1e','#1e2a2e','#2e2a1e','#2a1e2e']; let h=0;
-  for(let ch of u) h=(h*31+ch.charCodeAt(0))%c.length; return c[h];
-}
-function timeAgo(iso) {
-  if (!iso) return '';
-  const sec = Math.floor((Date.now()-new Date(iso))/1000);
-  if (sec<60)  return '방금 전';
-  if (sec<3600) return Math.floor(sec/60)+'분 전';
-  if (sec<86400) return Math.floor(sec/3600)+'시간 전';
-  return Math.floor(sec/86400)+'일 전';
-}
-function setDate() {
-  const d=new Date(), days=['일','월','화','수','목','금','토'],
-    months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  document.getElementById('topDate').textContent=`${d.getFullYear()}년 ${months[d.getMonth()]} ${d.getDate()}일 (${days[d.getDay()]})`;
-}
-async function reqNotif() {
-  if(!('Notification' in window)) return;
-  const p = await Notification.requestPermission();
-  if(p==='granted') new Notification('RTW Daily','알림이 허용되었습니다.');
-}
-
-// ── 시작
-initApp();
+// 시작
+initSupabase();
 </script>
 </body>
 </html>
